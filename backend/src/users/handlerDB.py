@@ -4,7 +4,7 @@ from .helper import get_payload_refresh
 from .models import UsersORM, UserProfilesORM
 from sqlalchemy import select, update
 from fastapi import HTTPException, Depends, status
-from .shemas import UserRegister, UserInfo, UserAuthorization, UserProfile, UserAll, UserUpdate
+from .shemas import UserRegister, UserInfo, UserAuthorization, UserAll, UserUpdate
 from ..base import get_async_session
 
 
@@ -77,22 +77,31 @@ async def get_users_offset(start: int = 0, offset: int = 5, session: AsyncSessio
     return [UserAll.model_validate(u, from_attributes=True) for u in users]
 
 
-async def update_user_db(user_id: str, new_user: UserUpdate, session=Depends(get_async_session)):
+async def update_user_db(user_id: str, new_user: UserUpdate, session: AsyncSession =Depends(get_async_session)):
+    attributs = ['firstname', 'lastname', 'middlename']
     profile = {}
-    if new_user.firstname or new_user.lastname or new_user.middlename:
-        for att in ['firstname', 'lastname', 'middlename']:
+
+    if any([hasattr(new_user, att) for att in attributs]):
+        for att in attributs:
             if hasattr(new_user, att):
                 if attribute := getattr(new_user, att):
                     profile[att] = attribute
                 delattr(new_user, att)
-    print(profile, new_user)
 
-    stmt = update(UsersORM).where(user_id == UsersORM.uuid).values(**new_user.dict(exclude_unset=True))
-    await session.execute(stmt)
+    if new_user.dict(exclude_unset=True):
+        try:
+            stmt = update(UsersORM).where(user_id == UsersORM.uuid).values(**new_user.dict(exclude_unset=True))
+            await session.execute(stmt)
+        except:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="conflict")
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Empty")
+
     if profile:
         stmt2 = update(UserProfilesORM).where(user_id == UserProfilesORM.user_uuid).values(**profile)
         await session.execute(stmt2)
+
     await session.commit()
     user = await get_user_uuid(user_id, session)
-    return user
 
+    return user

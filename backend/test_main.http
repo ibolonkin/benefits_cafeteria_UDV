@@ -1,13 +1,5 @@
-# Test your FastAPI endpoints
-
-GET http://127.0.0.1:8000/
-Accept: application/json
-
-###
-
-GET http://127.0.0.1:8000/hello/User
-Accept: application/json
-
-###
-
+### Пример POST-запроса с заголовками
+GET http://localhost:8000/b/image/13
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWNjZXNzIiwic3ViIjoiYTRhNDQ2MzctZTI1ZC00NDUxLWJiZjAtYTdmNDk5OGU4OGQ3IiwiYWN0aXZlIjp0cnVlLCJzdXBlcl91c2VyIjpmYWxzZSwiZXhwIjoxNzI5Mjc4ODkwLCJpYXQiOjE3MjkyNzc5OTB9.RrTThAndfjVp4yMThiRhiJI2n2vv2zMqGsLOtonUkZpuNIgDX3owcRkJfAsH_SZ5vuNAdtbprh9INdzqnpABBH4euDd9D5PMnKmOafqXpBeemr69xjlwgWmnYFLXgcaOOgZdVrqG6Q3Crttp4RoJx2BrKC4U2bSaTScI9fZoIxgjPavX64gS70vOFd3rJMBlmqJg6vYPdJ70mGO08BGkh34qrtsGn-Yj1T8pjILHz3aLkET8n3xp1wFihbPhkXe4XMbt13Uyk1CmbvGfGxfW5GW2sWKchqQgJ7XU-Sll0h8mwL32YlVL9fXcaKA_hR8GmNgoGSQu3P68Y2ww41ZiyQ
+Content-Type: application/json
 

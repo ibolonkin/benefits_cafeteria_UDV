@@ -1,6 +1,7 @@
 from fastapi import FastAPI
-from starlette.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.responses import RedirectResponse
+
 from .users.router import router as user_router
 from .benefits.router import router as benefits_router
 
@@ -30,5 +31,5 @@ async def root():
     return RedirectResponse(url='/docs')
 
 
-app.include_router(user_router, tags=['users'])
-app.include_router(benefits_router, prefix="/b", tags=['benefits'])
+app.include_router(user_router)
+app.include_router(benefits_router)

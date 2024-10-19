@@ -8,7 +8,6 @@ from src.users.models import REFRESH_TOKEN_TYPE, TOKEN_TYPE_FIELD, ACCESS_TOKEN_
 http_bearer = HTTPBearer(auto_error=False)
 
 
-
 def validate_token_type(
         payload: dict,
         token_type: str,

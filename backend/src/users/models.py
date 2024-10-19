@@ -25,7 +25,7 @@ class UsersORM(Base):
     benefits: Mapped[list["BenefitsORM"]] = relationship(
         secondary="user_benefits",
         back_populates="users",
-        lazy="joined"
+        lazy="select"
     )
 
 
@@ -39,5 +39,6 @@ class UserProfilesORM(Base):
 
     user: Mapped["UsersORM"] = relationship(
         back_populates="profile",
-        lazy="joined"
+        lazy="joined",
+        uselist=False
     )

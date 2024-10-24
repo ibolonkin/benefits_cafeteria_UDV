@@ -1,6 +1,6 @@
 import hashlib
 from sqlalchemy.ext.asyncio import AsyncSession
-from .helper import get_payload_refresh
+from .helper import get_payload_refresh, get_active_payload
 from .models import UsersORM, UserProfilesORM
 from sqlalchemy import select, update
 from fastapi import HTTPException, Depends, status
@@ -14,7 +14,7 @@ async def check_conflict_user(userData, session):
         raise HTTPException(status_code=409, detail="User already exists")
 
 
-async def register_user_db(userData: UserRegister, session: AsyncSession = Depends(get_async_session)) -> UserInfo:
+async def register_user_db(userData: UserRegister, session: AsyncSession = Depends(get_async_session)):
     await check_conflict_user(userData, session)
     hash_password = hashlib.sha256(userData.password.encode('utf-8')).hexdigest()
     userOrm = UsersORM(email=userData.email, hash_password=hash_password)
@@ -27,7 +27,8 @@ async def register_user_db(userData: UserRegister, session: AsyncSession = Depen
                                   )
     session.add(userProfile)
     await session.commit()
-    return UserInfo.model_validate(userOrm, from_attributes=True)
+
+    return userOrm
 
 
 async def find_auth_user(user_Auth: UserAuthorization, session: AsyncSession = Depends(get_async_session)):
@@ -77,7 +78,7 @@ async def get_users_offset(start: int = 0, offset: int = 5, session: AsyncSessio
     return [UserAll.model_validate(u, from_attributes=True) for u in users]
 
 
-async def update_user_db(user_id: str, new_user: UserUpdate, session: AsyncSession =Depends(get_async_session)):
+async def update_user_db(user_id: str, new_user: UserUpdate, session: AsyncSession = Depends(get_async_session)):
     attributs = ['firstname', 'lastname', 'middlename']
     profile = {}
 
@@ -105,3 +106,8 @@ async def update_user_db(user_id: str, new_user: UserUpdate, session: AsyncSessi
     user = await get_user_uuid(user_id, session)
 
     return user
+
+
+async def get_FirstLastName(user=Depends(get_active_payload), session=Depends(get_async_session)):
+    userOrm = await get_user_uuid(user.uuid, session)
+    return {"firstname": userOrm.profile.firstname, "lastname": userOrm.profile.lastname, }

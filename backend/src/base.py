@@ -3,7 +3,7 @@ from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.pool import NullPool
-from sqlalchemy import text, Date, func
+from sqlalchemy import Date, func
 from .config import settings
 
 engine = create_async_engine(settings.DATABASE_URL(), poolclass=NullPool,)
@@ -14,8 +14,8 @@ async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 class Base(DeclarativeBase):
-    create_at = mapped_column(Date, default=func.now())
-    update_at = mapped_column(Date,default=func.now(), onupdate=func.now())
+    create_at = mapped_column(Date, server_default=func.now())
+    update_at = mapped_column(Date, server_default=func.now(), server_onupdate=func.now())
     # create_at: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('utc',now())"))
     # upgrade_at: Mapped[datetime] = mapped_column(
     #     server_default=text("TIMEZONE('utc',now())"),

@@ -1,7 +1,6 @@
 from fastapi import (APIRouter, Depends,
                      Response, status, HTTPException, Request)
-from .handlerDB import register_user_db, refresh_get_user, find_auth_user
-from .helper import get_active_payload
+from .handlerDB import register_user_db, refresh_get_user, find_auth_user, get_FirstLastName
 from .shemas import UserInfo, Token
 from .utils import create_tokens
 from ..config import settings
@@ -11,7 +10,7 @@ router = APIRouter(responses={401: {'detail': "NOT AUTHORIZED"}})
 
 @router.post('/registration', status_code=status.HTTP_201_CREATED,
              description='Регистрация пользователя')
-async def register(response: Response, user_inf: UserInfo = Depends(register_user_db)) -> Token:
+async def register(response: Response, user_inf=Depends(register_user_db)) -> Token:
     return create_tokens(user_inf, response)
 
 
@@ -36,5 +35,5 @@ async def refresh(response: Response, user_inf: UserInfo = Depends(refresh_get_u
 
 
 @router.get('/check')
-async def check_auth(user=Depends(get_active_payload)):
-    return user
+async def check_auth(info=Depends(get_FirstLastName)):
+    return info

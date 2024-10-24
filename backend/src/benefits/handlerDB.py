@@ -1,10 +1,12 @@
 from fastapi import Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.base import get_async_session
 from src.benefits.shemas import CategoryCreate, Category, BenefitCreate, Benefit
-from .models import CategoryORM, BenefitsORM, Image
-from .utils import validate_file
+from .models import CategoryORM, BenefitsORM, Image, UserBenefits, Status
+from .utils import validate_file, get_user_payload
+from ..users.shemas import UserInfo
+
 
 # TODO: Добавить выбирание льгот
 
@@ -18,6 +20,7 @@ def create_in_db(orm_cls, validate_cls, cls_accept):
             await session.commit()
             return model_new
         except Exception as e:
+            print(e)
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
 
     return create_model_db
@@ -25,6 +28,7 @@ def create_in_db(orm_cls, validate_cls, cls_accept):
 
 create_category_db = create_in_db(CategoryORM, Category, CategoryCreate)
 create_benefit_db = create_in_db(BenefitsORM, Benefit, BenefitCreate)
+
 
 # TODO: перенести в статистику и добавить доп валидацию
 async def get_benefit(benefit_id: str, session: AsyncSession = Depends(get_async_session)):
@@ -63,16 +67,25 @@ async def get_categories(session: AsyncSession = Depends(get_async_session)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
 
-async def get_all_benefit(session: AsyncSession = Depends(get_async_session)):
-
-    # TODO: переделать под конкретного пользователя
-
+async def get_all_benefit(session: AsyncSession = Depends(get_async_session),
+                          user: UserInfo = Depends(get_user_payload)):
     try:
         query = select(BenefitsORM)
-        benefits = (await session.execute(query)).unique().scalars()
-        return benefits
+        benefits = [b for b in (await session.execute(query)).unique().scalars()]
+
+        query = select(UserBenefits).where(user.uuid == UserBenefits.user_uuid)
+        userBenefits = (await session.execute(query)).unique().scalars()
+        status_benefit = {b.benefits_uuid: b.status for b in userBenefits}
     except:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+    for b in benefits:
+        b.status = status_benefit.get(b.uuid)
+    available = [b for b in benefits
+                 if b.experience_month <= user.experience_month]
+
+    unavailable = [b for b in benefits
+                   if b.experience_month > user.experience_month]
+    return {'available': available, 'unavailable': unavailable}
 
 
 # async def create_category_db(category: CategoryCreate, session=Depends(get_async_session)):
@@ -91,7 +104,7 @@ async def get_all_benefit(session: AsyncSession = Depends(get_async_session)):
 #     await session.commit()
 #     return benefit
 
-async def add_photo_benefit(isMain: bool, photo=Depends(validate_file),
+async def add_photo_benefit(isMain: bool = True, photo=Depends(validate_file),
                             benefit: BenefitsORM = Depends(get_benefit),
                             session=Depends(get_async_session)):
     image = Image(data=photo)
@@ -106,3 +119,34 @@ async def add_photo_benefit(isMain: bool, photo=Depends(validate_file),
     await session.commit()
 
     return benefit
+
+
+async def choice_benefit_db(user=Depends(get_user_payload),
+                            benefit=Depends(get_benefit),
+                            session: AsyncSession = Depends(get_async_session)):
+    if benefit.experience_month > user.experience_month:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
+    try:
+        userBenefit = UserBenefits(user_uuid=user.uuid, benefits_uuid=benefit.uuid)
+        session.add(userBenefit)
+        await session.flush()
+        query = select(UserBenefits).where(userBenefit.id == UserBenefits.id)
+        userBenefit = (await session.execute(query)).scalar()
+        await session.commit()
+        return userBenefit
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+
+
+async def delete_category(category_id: int, session: AsyncSession = Depends(get_async_session)):
+    try:
+        update(BenefitsORM).filter(category_id == BenefitsORM.category_id).values(**{'category_id': None})
+        await session.flush()
+        query = select(CategoryORM).where(category_id == CategoryORM.id)
+        category = (await session.execute(query)).scalar()
+        await session.delete(category)
+        await session.commit()
+        return
+    except:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)

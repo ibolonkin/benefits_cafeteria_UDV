@@ -1,18 +1,19 @@
-from datetime import datetime
+from datetime import date
 from pydantic import BaseModel, EmailStr, Field, field_validator, UUID4
 
 ONLY_LETTERS = r'^[a-zA-ZА-Яа-я]+$'
-
 
 class Token(BaseModel):
     token_type: str = 'Bearer'
     accessToken: str
 
-
-class UserInfo(BaseModel):
+class UserInfoMin(BaseModel):
     uuid: UUID4
     active: bool
     super_user: bool
+
+class UserInfo(UserInfoMin):
+    experience_month: int
 
 
 class UserNameSurName(BaseModel):
@@ -39,8 +40,8 @@ class UserRegister(UserProfile, UserAuthorization):
     pass
 
 
-class User(UserInfo):
-    create_at: datetime
+class User(UserInfoMin):
+    create_at: date
     email: EmailStr
     profile: UserProfile
 
@@ -49,12 +50,12 @@ class UserAll(BaseModel):
     uuid: UUID4
     email: EmailStr
     profile: UserNameSurName
-    create_at: datetime
+    create_at: date
 
 
 class UserUpdate(BaseModel):
     email: EmailStr | None = None
-    create_at: datetime | None = None
+    create_at: date | None = None
     firstname: str | None = None
     lastname: str | None = None
     middlename: str | None = None

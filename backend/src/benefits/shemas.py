@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel, Field, UUID4
 
 class CategoryCreate(BaseModel):

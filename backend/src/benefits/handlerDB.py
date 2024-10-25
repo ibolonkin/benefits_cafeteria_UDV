@@ -2,7 +2,7 @@ from fastapi import Depends, HTTPException, status
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.base import get_async_session
-from src.benefits.shemas import CategoryCreate, Category, BenefitCreate, Benefit
+from src.benefits.shemas import CategoryCreate, Category, BenefitCreate, Benefit, BenefitUpdate
 from .models import CategoryORM, BenefitsORM, Image, UserBenefits, Status
 from .utils import validate_file, get_user_payload
 from ..users.shemas import UserInfo
@@ -123,7 +123,7 @@ async def add_photo_benefit(isMain: bool = True, photo=Depends(validate_file),
 
 async def choice_benefit_db(user=Depends(get_user_payload),
                             benefit=Depends(get_benefit),
-                            session: AsyncSession = Depends(get_async_session)):
+                            session: AsyncSession = Depends(get_async_session)) :
     if benefit.experience_month > user.experience_month:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
@@ -150,3 +150,20 @@ async def delete_category(category_id: int, session: AsyncSession = Depends(get_
         return
     except:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+
+async def update_benefit_db(benefit_id: str, benefit_inf: BenefitUpdate,
+                            session: AsyncSession = Depends(get_async_session),
+                            ):
+    if benefit_inf.dict(exclude_unset=True):
+        try:
+            stmt = update(BenefitsORM).where(benefit_id == BenefitsORM.uuid).values(
+                **benefit_inf.dict(exclude_unset=True))
+            await session.execute(stmt)
+        except:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="conflict")
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Empty")
+    await session.commit()
+    benefit = await get_benefit(benefit_id, session=session)
+    return benefit

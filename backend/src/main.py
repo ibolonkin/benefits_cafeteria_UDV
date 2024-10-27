@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import RedirectResponse
-
 from .users.router import router as user_router
 from .benefits.router import router as benefits_router
 

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from src.benefits.handlerDB import create_category_db, create_benefit_db, add_photo_benefit, delete_category, \
-    update_benefit_db
+    update_benefit_db, update_category_db
 from src.benefits.shemas import Category, Benefit, BenefitCategory
 from src.users.helper import get_superUser_payload
 
@@ -29,5 +29,9 @@ async def delete_category():
 
 
 @router.put('/{benefit_id}/')
-async def update_benefit(benefit=Depends(update_benefit_db)):
+async def update_benefit(benefit=Depends(update_benefit_db)) -> BenefitCategory:
     return benefit
+
+@router.put('/category/{category_id}')
+async def update_category(category=Depends(update_category_db)) -> Category:
+    return category

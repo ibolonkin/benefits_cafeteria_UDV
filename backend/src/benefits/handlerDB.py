@@ -2,10 +2,11 @@ from fastapi import Depends, HTTPException, status
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.base import get_async_session
-from src.benefits.shemas import CategoryCreate, Category, BenefitCreate, Benefit, BenefitUpdate
-from .models import CategoryORM, BenefitsORM, Image, UserBenefits, Status
+from src.benefits.shemas import CategoryCreate, Category, BenefitCreate, Benefit, BenefitUpdate, UpdateCategory
+from .models import CategoryORM, BenefitsORM, Image, UserBenefits
 from .utils import validate_file, get_user_payload
-from ..users.shemas import UserInfo
+from ..users.handlerDB import get_user_uuid
+from ..users.helper import get_active_payload
 
 
 # TODO: Добавить выбирание льгот
@@ -68,7 +69,7 @@ async def get_categories(session: AsyncSession = Depends(get_async_session)):
 
 
 async def get_all_benefit(session: AsyncSession = Depends(get_async_session),
-                          user: UserInfo = Depends(get_user_payload)):
+                          user=Depends(get_user_payload)):
     try:
         query = select(BenefitsORM)
         benefits = [b for b in (await session.execute(query)).unique().scalars()]
@@ -81,10 +82,15 @@ async def get_all_benefit(session: AsyncSession = Depends(get_async_session),
     for b in benefits:
         b.status = status_benefit.get(b.uuid)
     available = [b for b in benefits
-                 if b.experience_month <= user.experience_month]
+                 if b.experience_month <= user.experience
+                 if user.adap_period >= b.adap_period
+                 if user.ucoin >= b.ucoin
+                 ]
 
     unavailable = [b for b in benefits
-                   if b.experience_month > user.experience_month]
+                   if b.experience_month > user.experience
+                   if user.adap_period < b.adap_period
+                   ]
     return {'available': available, 'unavailable': unavailable}
 
 
@@ -121,21 +127,37 @@ async def add_photo_benefit(isMain: bool = True, photo=Depends(validate_file),
     return benefit
 
 
-async def choice_benefit_db(user=Depends(get_user_payload),
+async def choice_benefit_db(user=Depends(get_active_payload),
                             benefit=Depends(get_benefit),
-                            session: AsyncSession = Depends(get_async_session)) :
+                            session: AsyncSession = Depends(get_async_session)):
+    userOrm = await get_user_uuid(user.uuid, session)
+
     if benefit.experience_month > user.experience_month:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
+    uCoin: bool
+
+    if userOrm.ucoin < benefit.ucoin:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Не хватает койнов')
+
+    elif benefit.ucoin >= 0:
+        uCoin = True
+    else:
+        uCoin = False
 
     try:
         userBenefit = UserBenefits(user_uuid=user.uuid, benefits_uuid=benefit.uuid)
         session.add(userBenefit)
+
         await session.flush()
         query = select(UserBenefits).where(userBenefit.id == UserBenefits.id)
         userBenefit = (await session.execute(query)).scalar()
+        if uCoin:
+            userOrm.ucoin -= benefit.ucoin
         await session.commit()
         return userBenefit
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
 
 
@@ -167,3 +189,22 @@ async def update_benefit_db(benefit_id: str, benefit_inf: BenefitUpdate,
     await session.commit()
     benefit = await get_benefit(benefit_id, session=session)
     return benefit
+
+
+async def update_category_db(category_id: int,
+                             category: UpdateCategory,
+                             session: AsyncSession = Depends(get_async_session)):
+    if category.dict(exclude_unset=True):
+        try:
+            stmt = update(CategoryORM).where(category_id == CategoryORM.id).values(
+                **category.dict(exclude_unset=True))
+            res = await session.execute(stmt)
+            if res.rowcount == 0:
+                raise
+        except:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="conflict")
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Empty")
+    await session.commit()
+
+    return {'id': category_id, 'name': category.name}

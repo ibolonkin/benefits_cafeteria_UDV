@@ -1,12 +1,12 @@
 from typing import Literal
-
 from pydantic import BaseModel, Field, UUID4
-
 from src.users.shemas import User
+
+STRING = r'^.+[^ ]+.*$'
 
 
 class CategoryCreate(BaseModel):
-    name: str
+    name: str = Field(pattern=STRING, min_length=1, example='string')
 
 
 class Category(CategoryCreate):
@@ -14,21 +14,21 @@ class Category(CategoryCreate):
 
 
 class BenefitCreate(BaseModel):
-    name: str
-    description: str
-    price: int = Field(0, ge=0)
+    name: str = Field(pattern=STRING, example='string', min_length=1, max_length=255)
+    description: str = Field(pattern=STRING, example='string', min_length=1)
     category_id: int = Field(..., ge=0)
     experience_month: int = Field(0, ge=0)
-    ucoin: bool = False
+    ucoin: int = Field(0, ge=0)
+    adap_period: bool
 
 
 class BenefitUpdate(BaseModel):
-    name: str | None = None
-    description: str | None = None
-    price: int | None = Field(0, ge=0)
+    name: str | None = Field(None, pattern=STRING, example='string', min_length=1)
+    description: str | None = Field(None, pattern=STRING, example='string', min_length=1)
+    ucoin: int | None = Field(0, ge=0)
     category_id: int | None = Field(None, ge=0)
     experience_month: int | None = Field(0, ge=0)
-    ucoin: bool | None = None
+    adap_period: bool | None = Field(None)
 
 
 class Benefit(BenefitCreate):
@@ -44,12 +44,15 @@ class BenefitCategory(Benefit):
 
 class BenefitStatus(BenefitCategory):
     status: Literal["Pending", "Denied", "Approved"] | None
+
+
 # class CategoryBenefit(Category):
 #     benefits: List[BenefitCreate]
 
 class AllBenefit(BaseModel):
-    available:  list[BenefitStatus]
+    available: list[BenefitStatus]
     unavailable: list[BenefitStatus]
+
 
 class UserBenefit(BaseModel):
     user_uuid: UUID4
@@ -57,3 +60,7 @@ class UserBenefit(BaseModel):
     status: Literal["Pending", "Denied", "Approved"] | None
     user: User
     benefit: BenefitCategory
+
+
+class UpdateCategory(BaseModel):
+    name: str | None = Field(None, pattern=STRING, min_length=3, max_length=255, example='string')

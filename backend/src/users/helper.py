@@ -50,13 +50,13 @@ async def get_payload_refresh(request: Request):
     return payload
 
 
-async def get_active_payload(userInf: UserInfo = Depends(get_payload_access)):
+async def get_active_payload(userInf=Depends(get_payload_access)) -> UserInfo:
     if userInf.active:
         return userInf
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='User not active')
 
 
-async def get_superUser_payload(userInf: UserInfo = Depends(get_active_payload)):
+async def get_superUser_payload(userInf=Depends(get_active_payload)) -> UserInfo:
     if userInf.super_user:
         return userInf
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='FORBIDDEN')

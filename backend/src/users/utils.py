@@ -39,7 +39,8 @@ def create_access_token(user_inf) -> str:
 
     jwt_payload = {
         # дополнительно добавил дату, что бы без обращения к бд знать стаж работника
-        'experience_month': experience_month,
+        'experience': experience_month,
+        'a': user_inf.adap_period,
         'sub': str(user_inf.uuid),
         'active': user_inf.active,
         'super_user': user_inf.super_user,

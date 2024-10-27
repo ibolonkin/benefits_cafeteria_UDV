@@ -24,12 +24,13 @@ class BenefitsORM(Base):
     description: Mapped[str] = mapped_column(nullable=False)
     background_photo: Mapped[int] = mapped_column(ForeignKey('image.id'), nullable=True)
     main_photo: Mapped[int] = mapped_column(ForeignKey('image.id'), nullable=True)
-    price: Mapped[int] = mapped_column(nullable=False)
+    ucoin: Mapped[int] = mapped_column(nullable=False)
     experience_month: Mapped[int] = mapped_column(nullable=False)
-    ucoin: Mapped[bool] = mapped_column(nullable=False)
     category_id: Mapped[int] = mapped_column(ForeignKey('category.id'), nullable=True)
-    category: Mapped['CategoryORM'] = relationship(back_populates='benefits', uselist=False, lazy="joined")
 
+    adap_period: Mapped[bool] = mapped_column(nullable=False, server_default='True')
+
+    category: Mapped['CategoryORM'] = relationship(back_populates='benefits', uselist=False, lazy="joined")
     user_benefits_records: Mapped[list["UserBenefits"]] = relationship(
         "UserBenefits", back_populates="benefit", lazy="select", overlaps="users"
     )
@@ -71,5 +72,5 @@ class UserBenefits(Base):
 
 class Image(Base):
     __tablename__ = 'image'
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
     data = mapped_column(LargeBinary)

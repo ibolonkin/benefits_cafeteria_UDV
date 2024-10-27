@@ -1,35 +1,56 @@
 from datetime import date
 from pydantic import BaseModel, EmailStr, Field, field_validator, UUID4
 
-ONLY_LETTERS = r'^[a-zA-ZА-Яа-я]+$'
+ONLY_LETTERS_ONE_WORD = r'^[a-zA-ZА-Яа-я]+$'
+STRING = r'^.+[^ ]+.*$'
+
 
 class Token(BaseModel):
     token_type: str = 'Bearer'
     accessToken: str
+
 
 class UserInfoMin(BaseModel):
     uuid: UUID4
     active: bool
     super_user: bool
 
+
 class UserInfo(UserInfoMin):
-    experience_month: int
+    experience: int
+    adap_period: bool = Field(alias='a')
 
 
 class UserNameSurName(BaseModel):
-    firstname: str = Field(pattern=ONLY_LETTERS, example='string')
-    lastname: str = Field(pattern=ONLY_LETTERS, example='string')
+    firstname: str = Field(pattern=ONLY_LETTERS_ONE_WORD, example='string')
+    lastname: str = Field(pattern=ONLY_LETTERS_ONE_WORD, example='string')
 
-
-class UserProfile(UserNameSurName):
-    middlename: str = Field(pattern=ONLY_LETTERS, example='string')
-
-    @field_validator('firstname', 'lastname', 'middlename')
+    @field_validator('firstname', 'lastname', )
     @classmethod
     def capitalize_fields(cls, value):
         if value:
             return value.lower().capitalize()
 
+
+class UserProfile(UserNameSurName):
+    middlename: str | None = Field(None, pattern=ONLY_LETTERS_ONE_WORD, example='string')
+
+
+    @field_validator('middlename')
+    @classmethod
+    def capitalize_fields(cls, value):
+        if value:
+            return value.lower().capitalize()
+
+class UserProfileFull(UserProfile):
+    legal_entity: str | None = Field(None, pattern=STRING, example='string')
+    job_title: str | None = Field(None, pattern=STRING, example='string')
+
+    @field_validator('legal_entity', 'job_title')
+    @classmethod
+    def capitalize_fields(cls, value):
+        if value:
+            return value.lower().capitalize()
 
 class UserAuthorization(BaseModel):
     email: EmailStr
@@ -43,7 +64,9 @@ class UserRegister(UserProfile, UserAuthorization):
 class User(UserInfoMin):
     create_at: date
     email: EmailStr
-    profile: UserProfile
+    ucoin: int
+    adap_period: bool
+    profile: UserProfileFull
 
 
 class UserAll(BaseModel):
@@ -56,8 +79,16 @@ class UserAll(BaseModel):
 class UserUpdate(BaseModel):
     email: EmailStr | None = None
     create_at: date | None = None
-    firstname: str | None = None
-    lastname: str | None = None
-    middlename: str | None = None
+    firstname: str | None = Field(None, pattern=STRING, example='string', min_length=1)
+    lastname: str | None = Field(None, pattern=STRING, example='string', min_length=1)
+    middlename: str | None = Field(None, pattern=STRING, example='string', min_length=1)
     active: bool | None = None
     super_user: bool | None = None
+    ucoin: int | None = Field(0, ge=0)
+    adap_period: bool | None = None
+    job_title: str | None = Field(None, pattern=STRING, example='string', min_length=1)
+    legal_entity: str | None = Field(None, pattern=STRING, example='string', min_length=1)
+
+
+class MyCoin(BaseModel):
+    ucoin: int = Field(0, ge=0)

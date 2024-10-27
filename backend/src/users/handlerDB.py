@@ -3,8 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .helper import get_payload_refresh, get_active_payload
 from .models import UsersORM, UserProfilesORM
 from sqlalchemy import select, update
-from fastapi import HTTPException, Depends, status
-from .shemas import UserRegister, UserInfo, UserAuthorization, UserAll, UserUpdate
+from fastapi import HTTPException, Depends, status, Query
+from .shemas import UserRegister, UserAuthorization, UserAll, UserUpdate
 from ..base import get_async_session
 
 
@@ -47,7 +47,7 @@ async def get_user_uuid_req(user_id: str, session: AsyncSession = Depends(get_as
     return user
 
 
-async def get_user_uuid(uuid: str, session: AsyncSession):
+async def get_user_uuid(uuid: str, session: AsyncSession = Depends(get_async_session)):
     try:
         query = select(UsersORM).where(uuid == UsersORM.uuid)
         if user := (await session.execute(query)).scalar():
@@ -72,14 +72,15 @@ def get_user_token_sub_creator(
 refresh_get_user = get_user_token_sub_creator(get_payload_refresh)
 
 
-async def get_users_offset(start: int = 0, offset: int = 5, session: AsyncSession = Depends(get_async_session)):
+async def get_users_offset(start: int = Query(0, ge=0), offset: int = Query(5, ge=1),
+                           session: AsyncSession = Depends(get_async_session)):
     query = select(UsersORM).slice(start, start + offset)
     users = (await session.execute(query)).unique().scalars()
     return [UserAll.model_validate(u, from_attributes=True) for u in users]
 
 
 async def update_user_db(user_id: str, new_user: UserUpdate, session: AsyncSession = Depends(get_async_session)):
-    attributs = ['firstname', 'lastname', 'middlename']
+    attributs = ['firstname', 'lastname', 'middlename', 'legal_entity', 'job_title']
     profile = {}
 
     if any([hasattr(new_user, att) for att in attributs]):
@@ -88,19 +89,21 @@ async def update_user_db(user_id: str, new_user: UserUpdate, session: AsyncSessi
                 if attribute := getattr(new_user, att):
                     profile[att] = attribute
                 delattr(new_user, att)
-
+    flag = False
     if new_user.dict(exclude_unset=True):
         try:
             stmt = update(UsersORM).where(user_id == UsersORM.uuid).values(**new_user.dict(exclude_unset=True))
             await session.execute(stmt)
+            flag = True
         except:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="conflict")
-    else:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Empty")
-
     if profile:
         stmt2 = update(UserProfilesORM).where(user_id == UserProfilesORM.user_uuid).values(**profile)
         await session.execute(stmt2)
+        flag = True
+
+    if not flag:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Empty")
 
     await session.commit()
     user = await get_user_uuid(user_id, session)
@@ -111,3 +114,7 @@ async def update_user_db(user_id: str, new_user: UserUpdate, session: AsyncSessi
 async def get_FirstLastName(user=Depends(get_active_payload), session=Depends(get_async_session)):
     userOrm = await get_user_uuid(user.uuid, session)
     return {"firstname": userOrm.profile.firstname, "lastname": userOrm.profile.lastname, }
+
+async def get_coins_db(user=Depends(get_active_payload), session=Depends(get_async_session)) :
+    userOrm = await get_user_uuid(user.uuid, session)
+    return {'ucoin': userOrm.ucoin}

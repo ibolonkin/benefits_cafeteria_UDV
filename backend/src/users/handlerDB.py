@@ -2,7 +2,7 @@ import hashlib
 from sqlalchemy.ext.asyncio import AsyncSession
 from .helper import get_payload_refresh, get_active_payload
 from .models import UsersORM, UserProfilesORM
-from sqlalchemy import select, update
+from sqlalchemy import select, update, asc, desc, func
 from fastapi import HTTPException, Depends, status, Query
 from .shemas import UserRegister, UserAuthorization, UserAll, UserUpdate
 from ..base import get_async_session
@@ -73,10 +73,31 @@ refresh_get_user = get_user_token_sub_creator(get_payload_refresh)
 
 
 async def get_users_offset(start: int = Query(0, ge=0), offset: int = Query(5, ge=1),
+                           order_by: str = Query('name'),
+                           sort_order: str = Query("asc"),
                            session: AsyncSession = Depends(get_async_session)):
-    query = select(UsersORM).slice(start, start + offset)
+    order = {"name": UserProfilesORM.firstname,
+             "email": UsersORM.email,
+             "create_at": UsersORM.create_at,
+             "job_title": UserProfilesORM.job_title}.get(order_by)
+
+    if not order:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, )
+    query = select(UsersORM).join(UserProfilesORM)
+
+    if sort_order == "asc":
+        query = query.order_by(asc(order))
+    elif sort_order == 'desc':
+        query = query.order_by(desc(order))
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+
+    query = query.slice(start, start + offset)
     users = (await session.execute(query)).unique().scalars()
-    return [UserAll.model_validate(u, from_attributes=True) for u in users]
+    query = select(func.count()).select_from(UsersORM)
+    result = await session.execute(query)
+    count = result.scalar()
+    return {'users': [UserAll.model_validate(u, from_attributes=True) for u in users], 'len': count}
 
 
 async def update_user_db(user_id: str, new_user: UserUpdate, session: AsyncSession = Depends(get_async_session)):
@@ -113,8 +134,10 @@ async def update_user_db(user_id: str, new_user: UserUpdate, session: AsyncSessi
 
 async def get_FirstLastName(user=Depends(get_active_payload), session=Depends(get_async_session)):
     userOrm = await get_user_uuid(user.uuid, session)
-    return {"firstname": userOrm.profile.firstname, "lastname": userOrm.profile.lastname, }
+    return {"firstname": userOrm.profile.firstname, "lastname": userOrm.profile.lastname,
+            'super_user': userOrm.super_user}
 
-async def get_coins_db(user=Depends(get_active_payload), session=Depends(get_async_session)) :
+
+async def get_coins_db(user=Depends(get_active_payload), session=Depends(get_async_session)):
     userOrm = await get_user_uuid(user.uuid, session)
     return {'ucoin': userOrm.ucoin}

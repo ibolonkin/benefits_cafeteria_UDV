@@ -3,7 +3,6 @@ import jwt
 from src.config import settings
 from src.users.models import TOKEN_TYPE_FIELD, ACCESS_TOKEN_TYPE, REFRESH_TOKEN_TYPE
 from src.users.shemas import Token
-from dateutil.relativedelta import relativedelta
 
 
 def encode_jwt(
@@ -33,14 +32,8 @@ def create_jwt(token_type: str, token_data: dict,
 
 
 def create_access_token(user_inf) -> str:
-    today = date.today()
-    difference = relativedelta(today, user_inf.create_at)
-    experience_month = difference.years * 12 + difference.months
 
     jwt_payload = {
-        # дополнительно добавил дату, что бы без обращения к бд знать стаж работника
-        'experience': experience_month,
-        'a': user_inf.adap_period,
         'sub': str(user_inf.uuid),
         'active': user_inf.active,
         'super_user': user_inf.super_user,

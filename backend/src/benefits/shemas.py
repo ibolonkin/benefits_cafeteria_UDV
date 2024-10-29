@@ -1,8 +1,9 @@
+from datetime import date
 from typing import Literal
 from pydantic import BaseModel, Field, UUID4
 from src.users.shemas import User
 
-STRING = r'^.+[^ ]+.*$'
+STRING = r'\S.+|\S'
 
 
 class CategoryCreate(BaseModel):
@@ -11,6 +12,7 @@ class CategoryCreate(BaseModel):
 
 class Category(CategoryCreate):
     id: int
+    photo: int | None = Field(..., ge=0)
 
 
 class BenefitCreate(BaseModel):
@@ -34,7 +36,7 @@ class BenefitUpdate(BaseModel):
 class Benefit(BenefitCreate):
     uuid: UUID4
     main_photo: int | None = Field(..., ge=0)
-    background_photo: int | None = Field(..., ge=0)
+   # background_photo: int | None = Field(..., ge=0)
 
 
 class BenefitCategory(Benefit):
@@ -44,6 +46,7 @@ class BenefitCategory(Benefit):
 
 class BenefitStatus(BenefitCategory):
     status: Literal["Pending", "Denied", "Approved"] | None
+    available: bool
 
 
 # class CategoryBenefit(Category):
@@ -60,6 +63,7 @@ class UserBenefit(BaseModel):
     status: Literal["Pending", "Denied", "Approved"] | None
     user: User
     benefit: BenefitCategory
+    create_at: date
 
 
 class UpdateCategory(BaseModel):

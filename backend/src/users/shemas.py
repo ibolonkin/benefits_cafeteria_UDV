@@ -10,22 +10,27 @@ class Token(BaseModel):
     accessToken: str
 
 
-class UserInfoMin(BaseModel):
+class UserInfo(BaseModel):
     uuid: UUID4
     active: bool
     super_user: bool
-
-
-class UserInfo(UserInfoMin):
-    experience: int
-    adap_period: bool = Field(alias='a')
 
 
 class UserNameSurName(BaseModel):
     firstname: str = Field(pattern=ONLY_LETTERS_ONE_WORD, example='string')
     lastname: str = Field(pattern=ONLY_LETTERS_ONE_WORD, example='string')
 
-    @field_validator('firstname', 'lastname', )
+    @field_validator('firstname', 'lastname')
+    @classmethod
+    def capitalize_fields(cls, value):
+        if value:
+            return value.lower().capitalize()
+
+
+class UserProfileForAll(UserNameSurName):
+    job_title: str | None = Field(None, pattern=STRING, example='string')
+
+    @field_validator('job_title')
     @classmethod
     def capitalize_fields(cls, value):
         if value:
@@ -35,22 +40,16 @@ class UserNameSurName(BaseModel):
 class UserProfile(UserNameSurName):
     middlename: str | None = Field(None, pattern=ONLY_LETTERS_ONE_WORD, example='string')
 
-
     @field_validator('middlename')
     @classmethod
     def capitalize_fields(cls, value):
         if value:
             return value.lower().capitalize()
 
-class UserProfileFull(UserProfile):
-    legal_entity: str | None = Field(None, pattern=STRING, example='string')
-    job_title: str | None = Field(None, pattern=STRING, example='string')
 
-    @field_validator('legal_entity', 'job_title')
-    @classmethod
-    def capitalize_fields(cls, value):
-        if value:
-            return value.lower().capitalize()
+class UserProfileFull(UserProfile, UserProfileForAll):
+    legal_entity: str | None = Field(None, pattern=STRING, example='string')
+
 
 class UserAuthorization(BaseModel):
     email: EmailStr
@@ -61,7 +60,7 @@ class UserRegister(UserProfile, UserAuthorization):
     pass
 
 
-class User(UserInfoMin):
+class User(UserInfo):
     create_at: date
     email: EmailStr
     ucoin: int
@@ -72,7 +71,7 @@ class User(UserInfoMin):
 class UserAll(BaseModel):
     uuid: UUID4
     email: EmailStr
-    profile: UserNameSurName
+    profile: UserProfileForAll
     create_at: date
 
 
@@ -92,3 +91,8 @@ class UserUpdate(BaseModel):
 
 class MyCoin(BaseModel):
     ucoin: int = Field(0, ge=0)
+
+
+class GetAllUsers(BaseModel):
+    users: list[UserAll]
+    len: int

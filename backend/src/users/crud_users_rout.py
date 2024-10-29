@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from .handlerDB import get_user_uuid_req, get_users_offset, update_user_db
 from .helper import get_superUser_payload
-from .shemas import User, UserAll
+from .shemas import User, GetAllUsers
 
 router = APIRouter(dependencies=[Depends(get_superUser_payload)],
                    responses={403: {'detail': "FORBIDDEN"}, 401: {'detail': "NOT AUTHORIZED"}})
@@ -12,9 +12,12 @@ async def read_user(user=Depends(get_user_uuid_req)) -> User:
     return User.model_validate(user, from_attributes=True)
 
 
-@router.get('/')
-async def read_all_users(users: list[UserAll] = Depends(get_users_offset)) -> list[UserAll]:
-    return users
+@router.get('/',
+            description="order_by: По 4 типам, а именно name, email, create_at, job_title, Так же есть параметр "
+                        "sort_order: по двум типам"
+                        "asc и desc , len ( это сколько пользователей всего в системе)")
+async def read_all_users(obj=Depends(get_users_offset)) -> GetAllUsers:
+    return obj
 
 
 @router.put('/{user_id}')

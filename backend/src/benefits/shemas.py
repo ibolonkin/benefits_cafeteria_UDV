@@ -1,7 +1,6 @@
 from datetime import date
 from typing import Literal
 from pydantic import BaseModel, Field, UUID4
-from src.users.shemas import User
 
 STRING = r'\S.+|\S'
 
@@ -21,7 +20,8 @@ class BenefitCreate(BaseModel):
     category_id: int = Field(..., ge=0)
     experience_month: int = Field(0, ge=0)
     ucoin: int = Field(0, ge=0)
-    adap_period: bool
+    adap_period: bool = False
+    duration_in_days: int | None = Field(None, ge=0)
 
 
 class BenefitUpdate(BaseModel):
@@ -31,12 +31,15 @@ class BenefitUpdate(BaseModel):
     category_id: int | None = Field(None, ge=0)
     experience_month: int | None = Field(0, ge=0)
     adap_period: bool | None = Field(None)
+    duration_in_days: int | None = Field(None, ge=0)
 
 
 class Benefit(BenefitCreate):
     uuid: UUID4
     main_photo: int | None = Field(..., ge=0)
-   # background_photo: int | None = Field(..., ge=0)
+
+
+#  background_photo: int | None = Field(..., ge=0)
 
 
 class BenefitCategory(Benefit):
@@ -46,24 +49,19 @@ class BenefitCategory(Benefit):
 
 class BenefitStatus(BenefitCategory):
     status: Literal["Pending", "Denied", "Approved"] | None
+
+
+class BenefitStatusUser(BenefitStatus):
+    create_at: date
+    update_at: date
+
+
+class BenefitAvailable(BenefitStatus):
     available: bool
 
 
 # class CategoryBenefit(Category):
 #     benefits: List[BenefitCreate]
-
-class AllBenefit(BaseModel):
-    available: list[BenefitStatus]
-    unavailable: list[BenefitStatus]
-
-
-class UserBenefit(BaseModel):
-    user_uuid: UUID4
-    benefits_uuid: UUID4
-    status: Literal["Pending", "Denied", "Approved"] | None
-    user: User
-    benefit: BenefitCategory
-    create_at: date
 
 
 class UpdateCategory(BaseModel):

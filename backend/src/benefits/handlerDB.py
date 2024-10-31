@@ -1,11 +1,11 @@
 from datetime import date
-
 from fastapi import Depends, HTTPException, status
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.base import get_async_session
 from src.benefits.shemas import CategoryCreate, Category, BenefitCreate, Benefit, BenefitUpdate, UpdateCategory
 from .models import CategoryORM, BenefitsORM, Image, UserBenefits
+from .shemasU import ApplicationStatus, UserBenefit
 from .utils import validate_file
 from ..users.handlerDB import get_user_uuid
 from ..users.helper import get_active_payload
@@ -24,7 +24,6 @@ def create_in_db(orm_cls, validate_cls, cls_accept):
             await session.commit()
             return model_new
         except Exception as e:
-            print(e)
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
 
     return create_model_db
@@ -147,9 +146,13 @@ async def add_photo(photo=Depends(validate_file), session=Depends(get_async_sess
     await session.flush()
     return image
 
+
 async def add_photo_benefit(benefit: BenefitsORM = Depends(get_benefit),
                             image=Depends(add_photo),
                             session=Depends(get_async_session)):
+    if benefit.main_photo:
+        image_old = await session.get(Image, benefit.main_photo)
+        await session.delete(image_old)
     benefit.main_photo = image.id
     await session.commit()
 
@@ -159,6 +162,10 @@ async def add_photo_benefit(benefit: BenefitsORM = Depends(get_benefit),
 async def add_photo_category(category=Depends(get_category),
                              image=Depends(add_photo),
                              session=Depends(get_async_session)):
+    if category.photo:
+        image_old = await session.get(Image, category.photo)
+        await session.delete(image_old)
+
     category.photo = image.id
     await session.commit()
     return category
@@ -251,3 +258,32 @@ async def update_category_db(category_id: int,
     await session.commit()
 
     return {'id': category_id, 'name': category.name}
+
+
+async def get_all_application_db(session=Depends(get_async_session)):
+    try:
+        query = select(UserBenefits).where('Pending' == UserBenefits.status)
+        user_benefits = (await session.execute(query)).unique().scalars()
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    return user_benefits
+
+
+async def get_application(application_id: int, session=Depends(get_async_session)):
+    if user_benefit := await session.get(UserBenefits, application_id):
+        return user_benefit
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+
+async def update_status_application(statusAp: ApplicationStatus,
+                                    application=Depends(get_application),
+                                    session: AsyncSession = Depends(get_async_session)):
+
+    if application.status == "Pending":
+        application.status = statusAp.status
+        application.update_at = date.today()
+        await session.commit()
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+
+    return application

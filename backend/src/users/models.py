@@ -25,6 +25,15 @@ class UsersORM(Base):
         "UserBenefits", back_populates="user", lazy="select", overlaps="benefits"
     )
 
+    @property
+    def benefits(self) -> list["BenefitsORM"]:
+        benefits = [record.benefit for record in self.benefits_records]
+        for i in range(len(benefits)):
+            benefits[i].status = self.benefits_records[i].status
+            benefits[i].update_at = self.benefits_records[i].update_at
+            benefits[i].create_at = self.benefits_records[i].create_at
+        return sorted(benefits, key=lambda x: (x.status, x.update_at))
+
 
 class UserProfilesORM(Base):
     __tablename__ = 'user_profiles'

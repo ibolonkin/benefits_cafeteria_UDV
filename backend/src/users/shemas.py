@@ -1,8 +1,12 @@
 from datetime import date
+from typing import Literal
+
 from pydantic import BaseModel, EmailStr, Field, field_validator, UUID4
+from ..benefits.shemas import BenefitStatus, Benefit, BenefitStatusUser
 
 ONLY_LETTERS_ONE_WORD = r'^[a-zA-ZА-Яа-я]+$'
 STRING = r'^.+[^ ]+.*$'
+ONLY_ONE_WORD = r'^[^\s]+$'
 
 
 class Token(BaseModel):
@@ -17,8 +21,8 @@ class UserInfo(BaseModel):
 
 
 class UserNameSurName(BaseModel):
-    firstname: str = Field(pattern=ONLY_LETTERS_ONE_WORD, example='string')
-    lastname: str = Field(pattern=ONLY_LETTERS_ONE_WORD, example='string')
+    firstname: str = Field(pattern=ONLY_LETTERS_ONE_WORD, example='string',min_length=1, max_length=100)
+    lastname: str = Field(pattern=ONLY_LETTERS_ONE_WORD, example='string',min_length=1, max_length=100)
 
     @field_validator('firstname', 'lastname')
     @classmethod
@@ -28,7 +32,7 @@ class UserNameSurName(BaseModel):
 
 
 class UserProfileForAll(UserNameSurName):
-    job_title: str | None = Field(None, pattern=STRING, example='string')
+    job_title: str | None = Field(None, pattern=STRING, example='string', max_length=100)
 
     @field_validator('job_title')
     @classmethod
@@ -38,7 +42,7 @@ class UserProfileForAll(UserNameSurName):
 
 
 class UserProfile(UserNameSurName):
-    middlename: str | None = Field(None, pattern=ONLY_LETTERS_ONE_WORD, example='string')
+    middlename: str | None = Field(None, pattern=ONLY_LETTERS_ONE_WORD, example='string',min_length=1, max_length=100)
 
     @field_validator('middlename')
     @classmethod
@@ -48,12 +52,12 @@ class UserProfile(UserNameSurName):
 
 
 class UserProfileFull(UserProfile, UserProfileForAll):
-    legal_entity: str | None = Field(None, pattern=STRING, example='string')
+    legal_entity: str | None = Field(None, pattern=STRING, example='string', max_length=100)
 
 
 class UserAuthorization(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=4, max_length=15, example='<password>')
+    password: str = Field(min_length=4, max_length=15, example='<password>', pattern=ONLY_ONE_WORD)
 
 
 class UserRegister(UserProfile, UserAuthorization):
@@ -78,15 +82,15 @@ class UserAll(BaseModel):
 class UserUpdate(BaseModel):
     email: EmailStr | None = None
     create_at: date | None = None
-    firstname: str | None = Field(None, pattern=STRING, example='string', min_length=1)
-    lastname: str | None = Field(None, pattern=STRING, example='string', min_length=1)
-    middlename: str | None = Field(None, pattern=STRING, example='string', min_length=1)
+    firstname: str | None = Field(None, pattern=STRING, example='string', min_length=1, max_length=100)
+    lastname: str | None = Field(None, pattern=STRING, example='string', min_length=1, max_length=100)
+    middlename: str | None = Field(None, pattern=STRING, example='string', min_length=1, max_length=100)
     active: bool | None = None
     super_user: bool | None = None
     ucoin: int | None = Field(0, ge=0)
     adap_period: bool | None = None
-    job_title: str | None = Field(None, pattern=STRING, example='string', min_length=1)
-    legal_entity: str | None = Field(None, pattern=STRING, example='string', min_length=1)
+    job_title: str | None = Field(None, pattern=STRING, example='string', min_length=1, max_length=100)
+    legal_entity: str | None = Field(None, pattern=STRING, example='string', min_length=1, max_length=100)
 
 
 class MyCoin(BaseModel):
@@ -96,3 +100,14 @@ class MyCoin(BaseModel):
 class GetAllUsers(BaseModel):
     users: list[UserAll]
     len: int
+
+
+class UserWithbenefit(User):
+    benefits: list[BenefitStatusUser]
+
+
+class AnswerStatus(BaseModel):
+    status: Literal["Denied", "Approved", "Pending"]
+
+class Check(UserNameSurName):
+    super_user: bool

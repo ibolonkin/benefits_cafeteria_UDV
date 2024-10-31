@@ -1,9 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import RedirectResponse
 from .users.router import router as user_router
 from .benefits.router import router as benefits_router
-
 
 app = FastAPI()
 
@@ -23,6 +22,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# @app.on_event("startup")
+# async def startup(startup=Depends(create_super_user)):
+#     startup = None
+#     pass
+
 
 @app.get('/')
 async def root():

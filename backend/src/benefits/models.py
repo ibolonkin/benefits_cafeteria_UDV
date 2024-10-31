@@ -26,7 +26,7 @@ class BenefitsORM(Base):
     ucoin: Mapped[int] = mapped_column(nullable=False)
     experience_month: Mapped[int] = mapped_column(nullable=False)
     category_id: Mapped[int] = mapped_column(ForeignKey('category.id'), nullable=True)
-
+    duration_in_days: Mapped[int] = mapped_column( nullable=True)
     adap_period: Mapped[bool] = mapped_column(nullable=False, server_default='True')
 
     category: Mapped['CategoryORM'] = relationship(back_populates='benefits', uselist=False, lazy="joined")

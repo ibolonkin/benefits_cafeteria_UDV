@@ -2,7 +2,9 @@ from io import BytesIO
 from fastapi import APIRouter, Depends, Response
 from starlette.responses import StreamingResponse
 from src.benefits.handlerDB import get_image, get_all_benefit, get_categories, choice_benefit_db
-from src.benefits.shemas import Category,  UserBenefit, BenefitStatus
+from src.benefits.shemas import Category, BenefitStatus, BenefitAvailable
+from src.benefits.shemasU import UserBenefit
+
 from src.users.helper import get_active_payload
 
 router = APIRouter(dependencies=[Depends(get_active_payload)])
@@ -14,7 +16,7 @@ router = APIRouter(dependencies=[Depends(get_active_payload)])
 
 
 @router.get('/')
-async def get_all_benefits(benefits=Depends(get_all_benefit)) -> list[BenefitStatus]:
+async def get_all_benefits(benefits=Depends(get_all_benefit)) -> list[BenefitAvailable]:
     # benefits = [BenefitCategory.model_validate(benefit, from_attributes=True) for benefit in benefits]
     return benefits
 

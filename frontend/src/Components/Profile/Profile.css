@@ -1,0 +1,56 @@
+.profile-container{
+    display: flex;
+    width: 1385px;
+    height: 793px;
+    margin: 0 auto;
+    border-radius: 10px;
+    box-shadow: 0px 0px 250px 5px #00000040;
+    font-family: 'Hero';
+    color: #0B2027CC;
+    background-color: #F8F9FA;
+}
+
+.user-photo{
+    flex-shrink: 0;
+    margin: 112px 150px 0 50px;
+}
+
+.user-photo img{
+    display: flex;
+}
+
+.change-profile-photo{
+    margin-left: 70px;
+    cursor: pointer;
+}
+
+.user-self-info{
+    display: flex;
+    flex-direction: column;
+}
+
+.user-info-container{
+    max-width: 900px;
+}
+
+.user-fullname{
+    font-size: 48px;
+    margin: 36px 0 36px 0;
+}
+
+.user-info-item{
+    display: flex;
+    font-size: 28px;
+    margin-bottom: 30px;
+    text-align: left;
+}
+
+.user-info-item label{
+    color: #828282;
+    width: 340px;
+    margin-right: 120px;
+}
+
+.user-info-item span{
+    width: 390px;
+}

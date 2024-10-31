@@ -105,10 +105,10 @@
     align-items: center;
 }
 
-button:hover {
+.btn:hover {
     background-color: rgba(0, 192, 139, 0.6);
 }
 
-button:active{
+.btn:active{
     background-color: rgba(0, 192, 139, 0.8);
 }

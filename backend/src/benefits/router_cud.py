@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from src.benefits.handlerDB import create_category_db, create_benefit_db, add_photo_benefit, delete_category, \
-    update_benefit_db, update_category_db
+    update_benefit_db, update_category_db, add_photo_category
 from src.benefits.shemas import Category, Benefit, BenefitCategory
 from src.users.helper import get_superUser_payload
 
@@ -22,6 +22,9 @@ async def add_photo(benefit=Depends(add_photo_benefit)) -> BenefitCategory:
     benefit = BenefitCategory.model_validate(benefit, from_attributes=True)
     return benefit
 
+@router.patch('/category/{category_id}/')
+async def add_photo_category(category=Depends(add_photo_category)) -> Category:
+    return category
 
 @router.delete('/category/{category_id}', dependencies=[Depends(delete_category)])
 async def delete_category():

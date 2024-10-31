@@ -22,12 +22,11 @@ class BenefitsORM(Base):
                          unique=True, primary_key=True)
     name: Mapped[str] = mapped_column(nullable=False)
     description: Mapped[str] = mapped_column(nullable=False)
-    background_photo: Mapped[int] = mapped_column(ForeignKey('image.id'), nullable=True)
     main_photo: Mapped[int] = mapped_column(ForeignKey('image.id'), nullable=True)
     ucoin: Mapped[int] = mapped_column(nullable=False)
     experience_month: Mapped[int] = mapped_column(nullable=False)
     category_id: Mapped[int] = mapped_column(ForeignKey('category.id'), nullable=True)
-
+    duration_in_days: Mapped[int] = mapped_column( nullable=True)
     adap_period: Mapped[bool] = mapped_column(nullable=False, server_default='True')
 
     category: Mapped['CategoryORM'] = relationship(back_populates='benefits', uselist=False, lazy="joined")
@@ -40,6 +39,7 @@ class CategoryORM(Base):
     __tablename__ = 'category'
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(nullable=False)
+    photo: Mapped[int] = mapped_column(ForeignKey('image.id'), nullable=True)
 
     benefits: Mapped[list["BenefitsORM"]] = relationship(
         lazy="joined"

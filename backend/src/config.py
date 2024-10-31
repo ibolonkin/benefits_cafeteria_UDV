@@ -4,6 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).parent.parent
 
+
 class AuthJWT(BaseModel):
     private_key_path: Path = BASE_DIR / "certs" / "jwt-private.pem"
     public_key_path: Path = BASE_DIR / "certs" / "jwt-public.pem"
@@ -14,7 +15,15 @@ class AuthJWT(BaseModel):
     key_cookie: str = 'Auth-refresh'
 
 
-class Settings(BaseSettings):
+class SuperUser(BaseSettings):
+    email: str
+    firstname: str
+    lastname: str
+    middlename: str
+    password: str
+
+
+class Settings(SuperUser):
     DB_HOST: str
     DB_PORT: str
     DB_NAME: str

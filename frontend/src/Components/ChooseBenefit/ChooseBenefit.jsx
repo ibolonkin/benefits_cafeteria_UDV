@@ -37,7 +37,7 @@ const ChooseBenefit = () => {
         console.error('Ошибка при загрузке льгот', error);
       }
       try {
-        const categoriesResponse = await fetch('http://26.15.99.17:8000/b/category', {
+        const categoriesResponse = await fetch('http://26.15.99.17:8000/b/category/', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -81,7 +81,7 @@ const ChooseBenefit = () => {
   const fetchBgrIcon = async (imageId) => {
     const access_token = localStorage.getItem('accessToken');
     try {
-      const response = await fetch(`http://26.15.99.17:8000/b/image/${imageId}`, {
+      const response = await fetch(`http://26.15.99.17:8000/b/image/${imageId}/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -100,7 +100,7 @@ const ChooseBenefit = () => {
     if (benefitImages[imageId]) return;
     const access_token = localStorage.getItem('accessToken');
     try {
-      const response = await fetch(`http://26.15.99.17:8000/b/image/${imageId}`, {
+      const response = await fetch(`http://26.15.99.17:8000/b/image/${imageId}/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -189,7 +189,7 @@ const ChooseBenefit = () => {
         const result = await response.json();
 
         if (result.main_photo) {
-          const photoResponse = await fetch(`http://26.15.99.17:8000/b/image/${result.main_photo}`, {
+          const photoResponse = await fetch(`http://26.15.99.17:8000/b/image/${result.main_photo}/`, {
             method: 'GET',
             headers: {
               Authorization: `Bearer ${access_token}`,
@@ -273,7 +273,7 @@ const ChooseBenefit = () => {
 
         <div className="card-container">
           {filteredBenefits.length > 0 ? (
-            filteredBenefits.map((benefit) => (
+            filteredBenefits.sort((a, b) => b.available - a.available).map((benefit) => (
               <BenefitCard
                 key={benefit.uuid}
                 benefit={benefit}

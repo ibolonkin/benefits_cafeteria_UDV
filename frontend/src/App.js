@@ -8,12 +8,13 @@ import ChooseBenefit from './Components/ChooseBenefit/ChooseBenefit';
 import Profile from './Components/Profile/Profile';
 import Users from './Components/Users/Users';
 import MyBenefits from './Components/MyBenefits/MyBenefits';
-import BenefitsHR from './Components/BenefitsHR/BenefitsHR'
+import BenefitsHR from './Components/BenefitsHR/BenefitsHR';
 import { HRProvider, useHR } from './Components/HRContext';
+import Applications from './Components/Applications/Applications';
 
-function HRProtectedRoute({component: Component}) {
+function HRProtectedRoute({ component: Component }) {
   const { isHRMode } = useHR();
-  return isHRMode ? <Component /> : <Navigate to='/dashboard/' />
+  return isHRMode ? <Component /> : <Navigate to="/dashboard/" />;
 }
 
 function App() {
@@ -48,8 +49,18 @@ function App() {
             path="my-benefits"
             element={<MyBenefits />}
           />
-          <Route path='benefits' element={<HRProtectedRoute component={BenefitsHR} />} />
-           <Route path='users' element={<HRProtectedRoute component={Users} />} />
+          <Route
+            path="benefits"
+            element={<HRProtectedRoute component={BenefitsHR} />}
+          />
+          <Route
+            path="users"
+            element={<HRProtectedRoute component={Users} />}
+          />
+          <Route
+            path="applications"
+            element={<HRProtectedRoute component={Applications} />}
+          />
         </Route>
       </Routes>
     </HRProvider>

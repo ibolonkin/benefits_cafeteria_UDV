@@ -1,0 +1,216 @@
+.modal-overlay-application {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #00000079;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  font-family: 'Hero';
+}
+
+.close-modal-application-hr {
+  position: absolute;
+  top: 70px;
+  right: 390px;
+  font-size: 32px;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.application-container-hr {
+  width: 1131px;
+  height: 870px;
+  background: #fff;
+  border-radius: 45px;
+  box-shadow: 0px 0px 250px 5px #00000040;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  margin-left: 32px;
+}
+
+.user-info-container-application {
+  display: flex;
+  flex-direction: column;
+  max-width: 1131px;
+  margin-bottom: 50px;
+}
+
+.apllication-from-name {
+  text-align: center;
+  margin-bottom: 45px;
+  font-size: 30px;
+  margin-top: 20px;
+}
+
+.application-user-info-item {
+  display: flex;
+  text-align: left;
+  margin-left: 30px;
+  font-size: 24px;
+  margin-bottom: 18px;
+}
+
+.application-benefit-info-item {
+  margin-bottom: 18px;
+}
+
+.benefit-info-container-application {
+  margin-top: 18px;
+  margin-left: 30px;
+  font-size: 24px;
+}
+
+.benefit-info-container-application label {
+  color: #828282;
+  margin-right: 10px;
+}
+
+.split-line {
+  position: absolute;
+  top: 480px;
+  left: 390px;
+  border-top: 1px solid #cacaca;
+  width: 1131px;
+}
+
+.application-user-info-item label {
+  color: #828282;
+  margin-right: 10px;
+}
+
+.deni-application {
+  position: fixed;
+  top: 10px;
+  left: 130px;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001;
+}
+
+.apply-application {
+  position: fixed;
+  top: 10px;
+  left: 130px;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001;
+}
+
+.apply-deni-buttons {
+  margin: 0 auto;
+  margin-top: 60px;
+}
+
+.application-deni-button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  margin-right: 80px;
+  font-size: 22px;
+  font-family: 'Hero';
+  background-color: #cc3234;
+  padding: 16px 34px;
+  border-radius: 100px;
+  color: white;
+  white-space: 3.75%;
+  font-weight: 200;
+}
+
+.application-apply-button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 22px;
+  font-family: 'Hero';
+  background-color: #00c08bcc;
+  padding: 16px 34px;
+  border-radius: 100px;
+  color: white;
+  white-space: 3.75%;
+  font-weight: 200;
+}
+
+.dark-bgr-application {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  background-color: #00000079;
+}
+
+.deni-application {
+  width: 725px;
+  height: 339px;
+  background: #fff;
+  border-radius: 45px;
+  box-shadow: 0px 0px 250px 5px #00000040;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  margin-left: 454px;
+  margin-top: 300px;
+}
+
+.first-application-row{
+    margin-bottom: 140px;
+    font-size: 30px;
+}
+
+.application-deni-button-inside{
+    border: none;
+  background: none;
+  cursor: pointer;
+  margin-right: 80px;
+  font-size: 22px;
+  font-family: 'Hero';
+  background-color: #cc3234;
+  padding: 16px 42px;
+  border-radius: 100px;
+  color: white;
+  white-space: 3.75%;
+  font-weight: 200;
+}
+
+.application-apply-button-inside{
+    border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 22px;
+  font-family: 'Hero';
+  background-color: #00c08bcc;
+  padding: 16px 42px;
+  border-radius: 100px;
+  color: white;
+  white-space: 3.75%;
+  font-weight: 200;
+}
+
+.apply-application {
+    width: 725px;
+    height: 339px;
+    background: #fff;
+    border-radius: 45px;
+    box-shadow: 0px 0px 250px 5px #00000040;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    margin-left: 454px;
+    margin-top: 300px;
+  }

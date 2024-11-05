@@ -63,6 +63,7 @@ const Dashboard = () => {
             <NavLink
               to="/dashboard/choose-benefit"
               className="logo-link-hr"
+              onClick={()=> toggleHRMode(false)}
             >
               <img
                 src={logo}

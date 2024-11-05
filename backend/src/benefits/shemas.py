@@ -17,7 +17,7 @@ class Category(CategoryCreate):
 class BenefitCreate(BaseModel):
     name: str = Field(pattern=STRING, example='string', min_length=1, max_length=255)
     description: str = Field(pattern=STRING, example='string', min_length=1)
-    category_id: int = Field(..., ge=0)
+    category_id: int|None = Field(None, ge=0)
     experience_month: int = Field(0, ge=0)
     ucoin: int = Field(0, ge=0)
     adap_period: bool = False

@@ -4,37 +4,37 @@
   flex-direction: column;
 }
 
-.ucoin-info{
+.ucoin-info {
   display: flex;
-  align-items:center;
+  align-items: center;
   margin-bottom: 10px;
   margin-left: 60px;
 }
 
-.ucoin-text{
+.ucoin-text {
   font-size: 24px;
   color: #828282;
 }
 
-.ucoin-amount{
+.ucoin-amount {
   font-size: 30px;
   color: #828282;
 }
 
-.filters{
+.filters {
   width: 340px;
   padding: 20px;
   margin-left: 40px;
   margin-top: 60px;
 }
 
-.filters h3{
+.filters h3 {
   font-size: 32px;
   margin-bottom: 30px;
   font-weight: bold;
 }
 
-.filters label{
+.filters label {
   color: #828282;
   display: block;
   font-size: 16px;
@@ -42,7 +42,7 @@
   font-size: 24px;
 }
 
-.filters label input{
+.filters label input {
   margin-right: 10px;
 }
 
@@ -59,13 +59,17 @@
   font-weight: bold;
 }
 
-.ucoin-info, .category, .filters{
+.ucoin-info,
+.category,
+.filters {
   position: fixed;
 }
 
-.main-content{
+.main-content {
   display: flex;
 }
+
+
 
 .benefit-list {
   list-style: none;
@@ -74,6 +78,7 @@
 
 .benefit-list li {
   margin-bottom: 16px;
+  color: #828282;
 }
 
 .benefit-list button {
@@ -83,6 +88,7 @@
   cursor: pointer;
   text-align: left;
   font-size: 24px;
+  color: #828282;
 }
 
 .card-container {
@@ -106,7 +112,7 @@
   margin-left: 40px;
 }
 
-.ucoin-icon{
+.ucoin-icon {
   position: absolute;
   top: -2px;
   right: -2px;
@@ -200,13 +206,13 @@
   overflow: auto;
   overflow-x: hidden;
   scrollbar-color: #ffffff #00c08a88;
-  direction:rtl;
+  direction: rtl;
   padding-left: 20px;
   margin-left: -25px;
 }
 
 
-.modal-experience{
+.modal-experience {
   position: absolute;
   top: 360px;
   left: 42px;
@@ -218,12 +224,12 @@
   color: #828282;
 }
 
-.modal-experience b{
+.modal-experience b {
   color: #000;
   font-weight: 400;
 }
 
-.adap-period{
+.adap-period {
   position: absolute;
   top: 440px;
   left: 42px;
@@ -236,7 +242,7 @@
   font-weight: 600;
 }
 
-.ucoin-price-expanded{
+.ucoin-price-expanded {
   position: absolute;
   top: 410px;
   left: 42px;
@@ -248,7 +254,7 @@
   color: #828282;
 }
 
-.ucoin-price-expanded b{
+.ucoin-price-expanded b {
   color: #000;
   font-weight: 400;
 }
@@ -258,11 +264,11 @@
   top: 50%;
   right: 50px;
   transform: translateY(-60%);
-  width: 400px;
-  height: 280px;
-  object-fit: cover;
+  width: 523px;
+  height: 341px;
+  /* object-fit: cover;
   border-radius: 42px;
-  border: 1px solid #0b2027;
+  border: 1px solid #0b2027; */
 }
 
 .apply-button {
@@ -278,21 +284,22 @@
   margin-bottom: 14px;
 }
 
-.button-inactive{
+.button-inactive {
   background-color: #969696;
   color: #b6b5b5;
-  cursor:not-allowed;
+  cursor: not-allowed;
 }
 
-.button-applied{
+.button-applied {
   color: black;
   background-color: #DCCFEC;
   border: 5px solid #712181;
-  cursor:not-allowed;
+  cursor: not-allowed;
   padding: 11px 20px;
 }
 
-.benefit-card-unavailable{
+
+/* .benefit-card-unavailable {
   background-color: rgb(197, 189, 189);
   opacity: 0.8;
-}
+} */

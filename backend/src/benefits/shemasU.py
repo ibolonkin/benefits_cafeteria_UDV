@@ -31,3 +31,7 @@ class UserBenefitPending(BaseModel):
 class UserBenefit(UserBenefitPending):
     status: Literal["Pending", "Denied", "Approved"] | None
     update_at: date
+
+class ApplicationAll(BaseModel):
+    applications: list[Application]
+    len: int

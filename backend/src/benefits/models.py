@@ -31,7 +31,7 @@ class BenefitsORM(Base):
 
     category: Mapped['CategoryORM'] = relationship(back_populates='benefits', uselist=False, lazy="joined")
     user_benefits_records: Mapped[list["UserBenefits"]] = relationship(
-        "UserBenefits", back_populates="benefit", lazy="select", overlaps="users"
+        "UserBenefits", back_populates="benefit", lazy="select", overlaps="users", cascade="all, delete"
     )
 
 

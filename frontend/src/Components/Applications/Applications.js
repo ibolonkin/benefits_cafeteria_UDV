@@ -112,13 +112,14 @@ const Applications = () => {
       years -= 1;
       months += 12;
     }
-    const yearsWord = `${years} ${years % 100 >= 11 && years % 100 <= 19 ? 'лет' : years % 10 === 1 ? 'год' : years % 10 >= 2 && years % 10 <= 4 ? 'года' : 'лет'}`;
+    const yearsWord = `${years} ${years % 100 >= 11 && years % 100 <= 19 ? 'г' : years % 10 === 1 ? 'г' : years % 10 >= 2 && years % 10 <= 4 ? 'г' : 'г'}`;
     if (months === 0) {
       return yearsWord;
     }
 
-    return `${yearsWord}, ${months} ${months === 1 ? 'месяц' : months < 5 ? 'месяца' : 'месяцев'}`;
+    return `${yearsWord}, ${months} ${months === 1 ? 'м' : months < 5 ? 'м' : 'м'}`;
   };
+
 
   const openConfirmModal = () => setShowConfirmModal(true);
   const openDeniModal = () => setShowDeniModal(true);
@@ -133,7 +134,7 @@ const Applications = () => {
 
   return (
     <div className='application-container'>
-      <div className="main-content">
+      <div className="main-content-app">
         <div className="users-container">
           <div className="header-row">
             <span>
@@ -264,7 +265,7 @@ const Applications = () => {
                   </p>
 
                   <p className="application-benefit-info-item">
-                    <label>Требуемый стаж:</label> <span>{selectedApplication.benefit.experience_month === 12 ? `${selectedApplication.benefit.experience_month / 12} год` : selectedApplication.benefit.experience_month === 0 ? 'нет' : Math.floor(selectedApplication.benefit.experience_month / 12) + ' года'}</span>
+                    <label>Требуемый стаж:</label> <span>{selectedApplication.benefit.experience_month === 12 ? `${selectedApplication.benefit.experience_month / 12} г` : selectedApplication.benefit.experience_month === 0 ? 'нет' : Math.floor(selectedApplication.benefit.experience_month / 12) + ' г'}</span>
                   </p>
 
                   <p className="application-benefit-info-item">

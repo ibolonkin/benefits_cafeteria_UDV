@@ -4,7 +4,8 @@ from starlette.responses import RedirectResponse
 from .users.router import router as user_router
 from .benefits.router import router as benefits_router
 
-app = FastAPI()
+app = FastAPI(
+)
 
 origins = [
     "http://26.25.133.178:3000",
@@ -13,6 +14,10 @@ origins = [
     "https://26.25.133.178",
     "http://localhost:8000",
     "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    
+
+    "http://192.168.65.1:3000"
 ]
 
 app.add_middleware(

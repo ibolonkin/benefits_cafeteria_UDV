@@ -2,7 +2,7 @@ from datetime import date
 from typing import Literal
 
 from pydantic import BaseModel, EmailStr, Field, field_validator, UUID4
-from ..benefits.shemas import BenefitStatus, Benefit, BenefitStatusUser
+from ..benefits.shemas import BenefitStatusUser
 
 ONLY_LETTERS_ONE_WORD = r'^[a-zA-ZА-Яа-я]+$'
 STRING = r'^.+[^ ]+.*$'
@@ -21,8 +21,8 @@ class UserInfo(BaseModel):
 
 
 class UserNameSurName(BaseModel):
-    firstname: str = Field(pattern=ONLY_LETTERS_ONE_WORD, example='string',min_length=1, max_length=100)
-    lastname: str = Field(pattern=ONLY_LETTERS_ONE_WORD, example='string',min_length=1, max_length=100)
+    firstname: str = Field(pattern=ONLY_LETTERS_ONE_WORD, example='string', min_length=1, max_length=100)
+    lastname: str = Field(pattern=ONLY_LETTERS_ONE_WORD, example='string', min_length=1, max_length=100)
 
     @field_validator('firstname', 'lastname')
     @classmethod
@@ -36,17 +36,17 @@ class UserProfileForAll(UserNameSurName):
 
     @field_validator('job_title')
     @classmethod
-    def capitalize_fields(cls, value):
+    def capitalize_fields_job_title(cls, value):
         if value:
             return value.lower().capitalize()
 
 
 class UserProfile(UserNameSurName):
-    middlename: str | None = Field(None, pattern=ONLY_LETTERS_ONE_WORD, example='string',min_length=1, max_length=100)
+    middlename: str | None = Field(None, pattern=ONLY_LETTERS_ONE_WORD, example='string', min_length=1, max_length=100)
 
     @field_validator('middlename')
     @classmethod
-    def capitalize_fields(cls, value):
+    def capitalize_fields_middlename(cls, value):
         if value:
             return value.lower().capitalize()
 
@@ -79,18 +79,29 @@ class UserAll(BaseModel):
     create_at: date
 
 
+class ProfileUpdate(BaseModel):
+    firstname: str | None = Field(None, pattern=ONLY_LETTERS_ONE_WORD, example='string', min_length=1, max_length=100)
+    lastname: str | None = Field(None, pattern=ONLY_LETTERS_ONE_WORD, example='string', min_length=1, max_length=100)
+    middlename: str | None = Field(None, pattern=ONLY_LETTERS_ONE_WORD, example='string', min_length=1, max_length=100)
+    job_title: str | None = Field(None, pattern=STRING, example='string', min_length=1, max_length=100)
+    legal_entity: str | None = Field(None, pattern=STRING, example='string', min_length=1, max_length=100)
+
+
 class UserUpdate(BaseModel):
     email: EmailStr | None = None
     create_at: date | None = None
-    firstname: str | None = Field(None, pattern=STRING, example='string', min_length=1, max_length=100)
-    lastname: str | None = Field(None, pattern=STRING, example='string', min_length=1, max_length=100)
-    middlename: str | None = Field(None, pattern=STRING, example='string', min_length=1, max_length=100)
+    profile: ProfileUpdate | None = None
     active: bool | None = None
     super_user: bool | None = None
     ucoin: int | None = Field(0, ge=0)
     adap_period: bool | None = None
-    job_title: str | None = Field(None, pattern=STRING, example='string', min_length=1, max_length=100)
-    legal_entity: str | None = Field(None, pattern=STRING, example='string', min_length=1, max_length=100)
+
+    @field_validator('create_at')
+    @classmethod
+    def date_cannot_be_in_future(cls, v):
+        if v is not None and v > date.today():
+            raise ValueError("Дата не может быть больше сегодняшней")
+        return v
 
 
 class MyCoin(BaseModel):
@@ -107,7 +118,8 @@ class UserWithbenefit(User):
 
 
 class AnswerStatus(BaseModel):
-    status: Literal["Denied", "Approved", "Pending"]
+    status: Literal["Denied", "Approved", "Pending"] | None
+
 
 class Check(UserNameSurName):
     super_user: bool

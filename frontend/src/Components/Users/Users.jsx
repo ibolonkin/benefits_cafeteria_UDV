@@ -77,6 +77,7 @@ const Users = () => {
   const closeModal = (user) => {
     setIsModalOpen(false);
     setIsEditing(false);
+    setUcoinIcon(true);
     setSelectedUser(null);
   };
 
@@ -146,10 +147,10 @@ const Users = () => {
         setShowConfirmModal(false);
         setIsEditing(false);
         setUcoinIcon(true);
-      } else if(response.status === 422){
-        alert('Вы ввели неправильные данные (алерты уберутся до финального прода)')
+      } else if (response.status === 422) {
+        // alert('Вы ввели неправильные данные (алерты уберутся до финального прода)')
         setShowConfirmModal(false)
-      }else {
+      } else {
         console.error(response.statusText);
       }
     } catch (error) {
@@ -173,13 +174,14 @@ const Users = () => {
       years -= 1;
       months += 12;
     }
-    const yearsWord = `${years} ${years % 100 >= 11 && years % 100 <= 19 ? 'лет' : years % 10 === 1 ? 'год' : years % 10 >= 2 && years % 10 <= 4 ? 'года' : 'лет'}`;
+    const yearsWord = `${years} ${years % 100 >= 11 && years % 100 <= 19 ? 'г' : years % 10 === 1 ? 'г' : years % 10 >= 2 && years % 10 <= 4 ? 'г' : 'г'}`;
     if (months === 0) {
       return yearsWord;
     }
 
-    return `${yearsWord}, ${months} ${months === 1 ? 'месяц' : months < 5 ? 'месяца' : 'месяцев'}`;
+    return `${yearsWord}, ${months} ${months === 1 ? 'м' : months < 5 ? 'м' : 'м'}`;
   };
+  
 
   return (
     <div className="app-container">
@@ -228,7 +230,7 @@ const Users = () => {
               <span>
                 {user.profile.firstname} {user.profile.lastname}
               </span>
-              <span>{user.create_at}</span>
+              <span>{calculateExperience(user.create_at)}</span>
               <span>{user.profile.job_title ? user.profile.job_title : 'Нет'}</span>
               <span>{user.email}</span>
               <span className="more">...</span>
@@ -288,7 +290,7 @@ const Users = () => {
                     Редактировать
                   </a>
                 </div>
-                <div user-info-container>
+                <div className='user-info-container'>
                   <p className="user-fullname-hr">
                     {selectedUser.profile.lastname} {selectedUser.profile.firstname} {selectedUser.profile.middlename}
                   </p>
@@ -296,6 +298,7 @@ const Users = () => {
                     <label>Email:</label>
                     {isEditing ? (
                       <input
+                      className='input-user-class'
                         type="text"
                         value={selectedUser.email || ''}
                         onChange={(e) => handleInputChange('email', e.target.value)}
@@ -308,6 +311,7 @@ const Users = () => {
                     <label>Должность:</label>
                     {isEditing ? (
                       <input
+                      className='input-user-class'
                         type="text"
                         value={selectedUser.profile.job_title || ''}
                         onChange={(e) => handleInputChange('job_title', e.target.value)}
@@ -320,6 +324,7 @@ const Users = () => {
                     <label>Права администратора:</label>
                     {isEditing ? (
                       <select
+                      className='input-user-class'
                         value={selectedUser.super_user ? 'Да' : 'Нет'}
                         onChange={(e) => handleInputChange('super_user', e.target.value === 'Да')}
                       >
@@ -334,6 +339,7 @@ const Users = () => {
                     <label>Юр.лицо:</label>
                     {isEditing ? (
                       <input
+                      className='input-user-class'
                         type="text"
                         value={selectedUser.profile.legal_entity || ''}
                         onChange={(e) => handleInputChange('legal_entity', e.target.value)}
@@ -346,6 +352,7 @@ const Users = () => {
                     <label>Дата трудоустройства:</label>
                     {isEditing ? (
                       <input
+                      className='input-user-class'
                         type="text"
                         placeholder="гггг-мм-дд"
                         value={selectedUser.create_at || ''}
@@ -362,6 +369,7 @@ const Users = () => {
                     <label>Адаптационный период:</label>
                     {isEditing ? (
                       <select
+                      className='input-user-class'
                         value={selectedUser.adap_period ? 'Пройден' : 'Не пройден'}
                         onChange={(e) => handleInputChange('adap_period', e.target.value === 'Пройден')}
                       >
@@ -376,6 +384,7 @@ const Users = () => {
                     UCoin:{''}
                     {isEditing ? (
                       <input
+                      className='input-user-class'
                         type="number"
                         value={selectedUser.ucoin || ''}
                         onChange={(e) => handleInputChange('ucoin', e.target.value)}
@@ -395,6 +404,7 @@ const Users = () => {
                     <label>Статус пользователя:</label>
                     {isEditing ? (
                       <select
+                      className='input-user-class'
                         value={selectedUser.active ? 'Активен' : 'Удален'}
                         onChange={(e) => handleInputChange('active', e.target.value === 'Активен')}
                       >
@@ -405,36 +415,34 @@ const Users = () => {
                       <span>{selectedUser.active ? 'Активен' : 'Удален'}</span>
                     )}
                   </p>
-                  {isEditing && <button onClick={openConfirmModal}>Сохранить</button>}
+                  {isEditing && <button className='save-button-benefit save-button-benefit-user' onClick={openConfirmModal}>Сохранить</button>}
                 </div>
               </div>
             )}
           </div>
           {showConfirmModal && (
-            <div
-              className="confirm-modal-overlay"
-              onClick={closeConfirmModal}
-            >
-              <div
-                className="confirm-modal-content"
-                onClick={(e) => e.stopPropagation()}
-              >
+            <div className="dark-bgr-application">
+            <div className="apply-application">
+              <div className="first-application-row">
                 <p>Вы хотите сохранить изменения?</p>
+              </div>
+              <div className="second-application-row">
                 <button
-                  className="apply-change-btn"
-                  onClick={handleSaveChange}
-                >
-                  Да
-                </button>
-                <button
-                  className="deni-change-btn"
+                  className="application-deni-button"
                   onClick={closeConfirmModal}
                 >
-                  Нет
+                  Отмена
+                </button>
+                <button
+                  className="application-apply-button"
+                  onClick={handleSaveChange}
+                >
+                  Да, я уверен
                 </button>
               </div>
             </div>
-          )}
+          </div>
+      )}
         </div>
       )}
     </div>

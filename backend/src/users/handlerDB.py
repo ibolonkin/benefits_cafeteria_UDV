@@ -108,15 +108,21 @@ async def get_users_offset(start: int = Query(0, ge=0), offset: int = Query(5, g
 
 
 async def update_user_db(user_id: str, new_user: UserUpdate, session: AsyncSession = Depends(get_async_session)):
-    attributs = ['firstname', 'lastname', 'middlename', 'legal_entity', 'job_title']
+    # attributs = ['firstname', 'lastname', 'middlename', 'legal_entity', 'job_title']
+    # profile = {}
+    #
+    # if any([hasattr(new_user, att) for att in attributs]):
+    #     for att in attributs:
+    #         if hasattr(new_user, att):
+    #             if attribute := getattr(new_user, att):
+    #                 profile[att] = attribute
+    #             delattr(new_user, att)
     profile = {}
+    if new_user.profile:
+        profile = new_user.profile.dict(exclude_unset=True)
+        if hasattr(new_user, 'profile'):
+            delattr(new_user, 'profile')
 
-    if any([hasattr(new_user, att) for att in attributs]):
-        for att in attributs:
-            if hasattr(new_user, att):
-                if attribute := getattr(new_user, att):
-                    profile[att] = attribute
-                delattr(new_user, att)
     flag = False
     if new_user.dict(exclude_unset=True):
         try:

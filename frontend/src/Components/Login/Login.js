@@ -13,12 +13,12 @@ const Login = () => {
     e.preventDefault();
 
     if (!email || !password) {
-      alert('Все поля должны быть заполнены');
+      // alert('Все поля должны быть заполнены');
       return;
     }
 
     if (password.length < 4 || password.length > 15) {
-      alert('Пароль должен быть от 4 до 15 символов');
+      // alert('Пароль должен быть от 4 до 15 символов');
       return;
     }
 
@@ -28,7 +28,7 @@ const Login = () => {
       console.log(token);
       localStorage.setItem('accessToken', token);
       if (response) {
-        alert('Вход успешен!');
+        // alert('Вход успешен!');
         navigate('/dashboard/choose-benefit');
         
       }

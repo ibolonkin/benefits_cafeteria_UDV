@@ -1,7 +1,7 @@
 
 export const login = async (credentials) => {
   try {
-    const response = await fetch('http://26.15.99.17:8000/v1/login', {
+    const response = await fetch('http://localhost:8000/v1/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -13,7 +13,7 @@ export const login = async (credentials) => {
     if (!response.ok) {
       throw new Error('Ошибка при логине');
     }
-    
+
 
     return response
 

@@ -72,8 +72,8 @@ const ChooseBenefit = () => {
       benefits.forEach((benefit) => {
         if (benefit.main_photo && !benefitImages[benefit.main_photo]) {
           fetchBenefitImages(benefit.main_photo);
-          fetchBgrIcon(benefit.category.photo);
         }
+        fetchBgrIcon(benefit.category.photo);
       });
     }
   }, [benefits]);
@@ -168,7 +168,7 @@ const ChooseBenefit = () => {
   const handleFileUpload = async (event, benefitId) => {
     event.stopPropagation();
     if (!selectedFile) {
-      alert('Пожалуйста выберите файл');
+      // alert('Пожалуйста выберите файл');
       return;
     }
 
@@ -202,7 +202,7 @@ const ChooseBenefit = () => {
           setBenefits((prevBenefits) => prevBenefits.map((benefit) => (benefit.uuid === benefit.main_photo ? { ...benefit, url: imageUrl } : benefit)));
         }
       } else {
-        alert('Ошибка при загрузке файла');
+        // alert('Ошибка при загрузке файла');
       }
     } catch (error) {
       console.error('Ошибка при загрузке файла', error);
@@ -229,7 +229,7 @@ const ChooseBenefit = () => {
               checked={filterByUCoin}
               onChange={() => setFilterByUCoin((prev) => !prev)}
             />
-            за UCoin
+            За UCoin
           </label>
         </div>
 

@@ -24,12 +24,12 @@ const Registration = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!lastname || !firstname || !email || !password) {
-      alert('Все поля должны быть заполнены');
+      // alert('Все поля должны быть заполнены');
       return;
     }
 
     if (password.length < 4 || password.length > 15) {
-      alert('Пароль должен быть от 4 до 15 символов');
+      // alert('Пароль должен быть от 4 до 15 символов');
     }
     try {
       const response = await registration({
@@ -41,7 +41,7 @@ const Registration = () => {
       });
 
       if (response) {
-        alert('Регистрация прошла успешна!');
+        // alert('Регистрация прошла успешна!');
         navigate('/login');
       }
       localStorage.setItem('accessToken', response.accessToken);

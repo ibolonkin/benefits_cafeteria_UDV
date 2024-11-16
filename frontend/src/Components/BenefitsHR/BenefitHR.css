@@ -56,7 +56,7 @@
   cursor: pointer;
 }
 
-.dropdown-menu {
+.dropdown-menu-new {
   position: absolute;
   top: 70px;
   right: 20px;
@@ -70,21 +70,22 @@
   background-color: white;
 }
 
-.dropdown-menu.active{
-    display: flex;
+.dropdown-menu-new.active {
+  display: flex;
 }
 
 .dropdown-item {
   font-size: 18px;
-  color:#828282;
+  color: #828282;
 }
 
 .dropdown-item:hover {
-    font-size: 18px;
-    color:#000000;
-  }
+  font-size: 18px;
+  color: #000000;
+}
 
 .benefit-hr-add {
+  font-family: 'Hero';
   border: none;
   background: none;
   margin-top: 120px;
@@ -97,4 +98,207 @@
   border-radius: 100px;
   font-weight: 200;
   cursor: pointer;
+}
+
+.close-modal-hr-benefit:hover {
+  color: #FF4444;
+}
+
+.modal-overlay-benefit {
+  position: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  height: 100vh;
+}
+
+.close-modal-hr-benefit {
+
+  font-size: 32px;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.benefit-name-container {
+  width: 1300px;
+}
+
+.benfit-container-hr {
+  width: 1300px;
+  height: 710px;
+  background: #fff;
+  border-radius: 45px;
+  padding: 20px;
+  display: flex;
+}
+
+.benefit-info-container {
+  display: flex;
+  flex-direction: column;
+  max-width: 900px;
+  padding-left: 15px;
+  padding-right: 15px;
+
+}
+
+
+.benefit-container-hr {
+  background: #fff;
+  height: 100%;
+  padding: 20px;
+  display: flex;
+  align-items: flex;
+  padding: 50px;
+  padding-left: 70px;
+}
+
+.benefit-photo-preview {
+
+  width: 663px;
+  height:
+    432px;
+  object-fit: cover;
+  border-radius: 50px;
+  border: 1px solid #0b2027;
+}
+
+.benefit-photo {
+  align-items: center;
+  padding-left: 300px;
+  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  max-width: 400px;
+  height: 90%;
+
+}
+
+.input-benefit {
+  -webkit-border-radius: 15px;
+  -moz-border-radius: 15px;
+  border-radius: 15px;
+  padding: 5px;
+  text-align: center;
+  font-size: 20px;
+}
+
+.benefit-info-item-hr {
+  display: flex;
+  font-size: 22px;
+  margin-bottom: 40px;
+  text-align: left;
+
+}
+
+.benefit-info-item-hr label {
+  color: #828282;
+  margin-right: 10px;
+}
+
+.benefit-info-item-hr span {
+  width: 390px;
+}
+
+.modal-content-hr-benefit {
+  width: 79.2vw;
+  height: 100%;
+
+}
+
+.close-modal-div {
+  display: flex;
+  background: #fff;
+  padding-top: 70px;
+  padding-left: 23px;
+
+}
+
+.close-modal-benefit-info-item-hr {
+  font-size: 27px;
+  font-weight: 600;
+  padding-left: 15px;
+}
+
+.input-benefit-textarea {
+  width: 676px;
+  /* Задайте нужную ширину текстового поля */
+  resize: none;
+  /* Отключает возможность изменения размера */
+  padding: 8px;
+  text-align: start;
+  height: 236px;
+
+}
+
+.benefit-label {
+  margin-bottom: 8px;
+}
+
+.benefit-textarea {
+  display: flex;
+  flex-direction: column;
+}
+
+.input-benefit-name {
+  width: 300px;
+  text-align: center;
+}
+
+.input-benefit-number {
+  box-sizing: border-box;
+  width: auto;
+  min-width: 10px;
+  /* Минимальная ширина для более короткого числа */
+  max-width: 60px;
+  /* Ограничение по ширине */
+  padding: 4px 6px;
+  margin-left: 10px;
+  margin-right: 5px;
+}
+
+/* Скрываем стандартный input */
+.custom-file-upload input[type="file"] {
+  display: none;
+}
+
+/* Стили для кастомного label */
+.custom-file-upload {
+  width: 200px;
+  display: inline-block;
+  padding: 10px 20px;
+  margin-bottom: 30px;
+  background-color: #f0f0f0;
+  cursor: pointer;
+  /* Фон овала */
+  border-radius: 25px;
+  /* Закругленные углы */
+  color: #333;
+  /* Цвет текста */
+  font-size: 16px;
+
+  transition: background-color 0.3s;
+  /* Плавный переход при наведении */
+  text-align: center;
+}
+
+/* Эффект при наведении */
+.custom-file-upload:hover {
+  background-color: #e0e0e0;
+  /* Изменение цвета при наведении */
+}
+
+.save-button-benefit {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 22px;
+  font-family: 'Hero';
+  background-color: #00c08bcc;
+  padding: 16px 34px;
+  border-radius: 100px;
+  color: white;
+  white-space: 3.75%;
+  font-weight: 200;
 }

@@ -1,390 +1,3 @@
-// import { useEffect, useState } from 'react';
-// import './BenefitHR.css'
-
-
-// const BenefitsHR = () => {
-//   const [data, setData] = useState({ benefits: [], len: 0 });
-//   const [currentPage, setCurrentPage] = useState(1);
-//   const [openDropdownId, setOpenDropdownId] = useState(null);
-//   const usersPerPage = 5;
-//   const access_token = localStorage.getItem('accessToken');
-
-//   const fetchBenefits = async (currentPage) => {
-//     const start = (currentPage - 1) * usersPerPage;
-//     try {
-//       const response = await fetch(`http://26.15.99.17:8000/b/benefit/?start=${start}&offset=${usersPerPage}`, {
-//         method: 'GET',
-//         headers: {
-//           'Content-Type': 'application/json',
-//           Authorization: `Bearer ${access_token}`,
-//         },
-//       });
-
-//       const result = await response.json();
-//       setData(result);
-//     } catch (error) {
-//       console.error(error);
-//     }
-//   };
-
-//   const fetchDeleteBenefit = async (benefitId) => {
-//     try {
-//       const response = await fetch(`http://26.15.99.17:8000/b/benefit/${benefitId}/`, {
-//         method: 'DELETE',
-//         headers: {
-//           'Content-Type': 'application/json',
-//           Authorization: `Bearer ${access_token}`,
-//         },
-//       });
-//       if (response.ok) {
-//         setData((prevData) => ({
-//           ...prevData,
-//           benefits: prevData.benefits.filter((benefit) => benefit.uuid !== benefitId),
-//         }));
-//         setOpenDropdownId(null);
-//       }
-//     } catch (error) {
-//       console.error(error);
-//     }
-//   };
-
-//   useEffect(() => {
-//     fetchBenefits(currentPage);
-//   }, [currentPage]);
-
-//   const totalPages = Math.ceil(data.len / usersPerPage);
-
-//   const handlePageChange = (page) => {
-//     if (page >= 1 && page <= totalPages) {
-//       setCurrentPage(page);
-//       fetchBenefits(page);
-//     }
-//   };
-
-//   const toggleDropdown = (benefitId) => {
-//     setOpenDropdownId((prevId) => (prevId === benefitId ? null : benefitId));
-//   };
-
-//   const [isModalOpen, setIsModalOpen] = useState(false);
-//   const [selectedBenefit, setSelectedBenefit] = useState(null);
-//   const [originalData, setOriginalData] = useState(null);
-//   const [isEditing, setIsEditing] = useState(false);
-
-//   const handleInputChange = (field, value) => {
-//     if (field === 'name' || field === 'description') {
-//       setSelectedBenefit((prevUser) => ({
-//         ...prevUser,
-//         [field]: value,
-//       }));
-//     } else if (field === 'adap_period') {
-//       setSelectedBenefit((prevUser) => ({
-//         ...prevUser,
-//         [field]: value,
-//       }));
-//     } else if (field === 'ucoin' || field === "duration_in_days") {
-//       setSelectedBenefit((prevUser) => ({
-//         ...prevUser,
-//         [field]: parseInt(value) || 0,
-//       }));
-//     } else if (field === 'experience_month_year') {
-//       setSelectedBenefit((prevUser) => ({
-//         ...prevUser,
-//         experience_month: (prevUser.experience_month || 0) + value * 12,
-//       }));
-
-//     }
-
-//     else {
-//       setSelectedBenefit((prevUser) => ({
-//         ...prevUser,
-//         [field]: value,
-//       }));
-//     }
-//   };
-//   // Функция для отправки PUT-запроса на сервер
-// const saveEditedBenefit = async () => {
-//   const updatedBenefit = {
-//     name: selectedBenefit.name,
-//     description: selectedBenefit.description,
-//     ucoin: selectedBenefit.ucoin,
-//     category_id: selectedBenefit.category.id,
-//     experience_month: selectedBenefit.experience_month,
-//     adap_period: selectedBenefit.adap_period,
-//     duration_in_days: selectedBenefit.duration_in_days,
-//   };
-
-//   try {
-//     const response = await fetch(`http://26.15.99.17:8000/b/${selectedBenefit.uuid}/`, {
-//       method: 'PUT',
-//       headers: {
-//         'Content-Type': 'application/json',
-//         Authorization: `Bearer ${access_token}`,
-//       },
-//       body: JSON.stringify(updatedBenefit),
-//     });
-
-//     if (response.ok) {
-//       alert('Изменения успешно сохранены');
-//       setIsModalOpen(false); // Закрыть модальное окно
-//       fetchBenefits(currentPage); // Обновить список после сохранения
-//     } else {
-//       alert('Не удалось сохранить изменения');
-//     }
-//   } catch (error) {
-//     console.error('Ошибка при сохранении данных:', error);
-//   }
-// };
-
-
-
-//   const openModal = async (benefit) => {
-//     setIsEditing(true);
-//     const response = await fetch(`http://26.15.99.17:8000/b/benefits/${benefit.uuid}/`, {
-//       method: 'GET',
-//       headers: {
-//         'Content-Type': 'application/json',
-//         Authorization: `Bearer ${access_token}`,
-//       },
-//     });
-//     const data = await response.json();
-//     setSelectedBenefit(data);
-//     setOriginalData(JSON.parse(JSON.stringify(benefit)));
-//     setIsModalOpen(true);
-//     setOpenDropdownId(null);
-//   };
-//   const closeModal = () => {
-//     setIsModalOpen(false);
-//     setIsEditing(false);
-//     setSelectedBenefit(null);
-//   };
-
-
-//   return (
-//     <div className="benefit-hr-container">
-//       <div className="all-benefit-hr-container">
-//         {data.benefits.map((benefit) => (
-//           <div
-//             key={benefit.id}
-//             className="benefit-hr-card"
-//           >
-//             <div className="benefit-row">
-//               <p className="benefit-hr-label">Название льготы</p>
-//               <p className="benefit-hr-value">{benefit.name}</p>
-//             </div>
-//             <div className="benefit-row">
-//               <p className="benefit-hr-label">Категория</p>
-//               <p className="benefit-hr-value">{benefit.category.name}</p>
-//             </div>
-//             <div className="benefit-row">
-//               <p className="benefit-hr-label">Требуемый стаж:</p>
-//               <p className="benefit-hr-value">{benefit.experience_month === 12 ? `${benefit.experience_month / 12} год` : benefit.experience_month === 0 ? 'нет' : Math.floor(benefit.experience_month / 12) + ' года'}</p>
-//             </div>
-//             <div className="benefit-row">
-//               <p className="benefit-hr-label">Статус заявки:</p>
-//               <p className="benefit-hr-value">Активна</p>
-//             </div>
-//             <div>
-//               <div
-//                 className="benefit-hr-dots"
-//                 onClick={() => toggleDropdown(benefit.uuid)}
-//               >
-//                 ...
-//               </div>
-//               {openDropdownId === benefit.uuid && (
-//                 <div className="dropdown-menu-new active">
-//                   <button className="dropdown-item" onClick={() => openModal(benefit)}>Редактировать</button>
-//                   <button
-//                     className="dropdown-item"
-//                     onClick={() => fetchDeleteBenefit(benefit.uuid)}
-//                   >
-//                     Удалить
-//                   </button>
-//                 </div>
-//               )}
-//             </div>
-//           </div>
-//         ))}
-//         <button className="benefit-hr-add">Добавить льготу</button>
-//         <div className="pagination">
-//           <button
-//             onClick={() => handlePageChange(currentPage - 1)}
-//             disabled={currentPage === 1}
-//           >
-//             {'<'}
-//           </button>
-//           {[...Array(totalPages)].map((_, i) => (
-//             <button
-//               key={i}
-//               className={currentPage === i + 1 ? 'active-pagination' : ''}
-//               onClick={() => setCurrentPage(i + 1)}
-//             >
-//               {i + 1}
-//             </button>
-//           ))}
-//           <button
-//             onClick={() => handlePageChange(currentPage + 1)}
-//             disabled={currentPage === totalPages}
-//           >
-//             {'>'}
-//           </button>
-//         </div>
-//       </div>
-//       {isModalOpen && (
-//   <div className="modal-overlay-benefit">
-//     <div
-//       className="modal-content-hr-benefit"
-//       onClick={(event) => event.stopPropagation()}>
-//       <button
-//         className="close-modal-hr-benefit"
-//         onClick={closeModal}
-//       >
-//         ✕
-//       </button>
-//       {selectedBenefit && (
-//         <div className="benefit-container-hr">
-//           <div className='benefit-info-container' >
-//             <p className="benefit-info-item-hr">
-//               <label>Название льготы:</label>
-//               <input
-//                 type="text"
-//                 value={selectedBenefit.name || ''}
-//                 onChange={(e) => handleInputChange('name', e.target.value)}
-//               />
-//             </p>
-//             <p className="benefit-info-item-hr">
-//               <label>Описание:</label>
-//               <textarea
-//                 value={selectedBenefit.description || ''}
-//                 onChange={(e) => handleInputChange('description', e.target.value)}
-//               />
-//             </p>
-//             <p className="benefit-info-item-hr">
-//               <label>Требуемый стаж:</label>
-//               <input
-//                 type="text"
-//                 value={~~(selectedBenefit.experience_month / 12) || '0'}
-//                 onChange={(e) => handleInputChange('experience_month_year', e.target.value)}
-//               />
-//               <input
-//                 type="text"
-//                 value={selectedBenefit.experience_month % 12 || '0'}
-//                 onChange={(e) => handleInputChange('experience_month', e.target.value)}
-//               />
-//             </p>
-//             <p className="benefit-info-item-hr">
-//               <label>Количество монет:</label>
-//               <input
-//                 type="text"
-//                 value={selectedBenefit.ucoin || 0}
-//                 onChange={(e) => handleInputChange('ucoin', e.target.value)}
-//               />
-//             </p>
-//             <p className="benefit-info-item-hr">
-//               <label>Период адаптации:</label>
-//               <input
-//                 type="checkbox"
-//                 checked={selectedBenefit.adap_period}
-//                 onChange={(e) => handleInputChange('adap_period', e.target.checked)}
-//               />
-//             </p>
-//             <p className="benefit-info-item-hr">
-//               <label>Продолжительность в днях:</label>
-//               <input
-//                 type="text"
-//                 value={selectedBenefit.duration_in_days || 0}
-//                 onChange={(e) => handleInputChange('duration_in_days', e.target.value)}
-//               />
-//             </p>
-//             <button className="save-button" onClick={saveEditedBenefit}>Сохранить</button>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   </div>
-// )}
-
-//       {/* {isModalOpen && (
-//         <div className="modal-overlay-benefit">
-//           <div
-//             className="modal-content-hr-benefit"
-//             onClick={(event) => event.stopPropagation()}>
-//             <button
-//               className="close-modal-hr-benefit"
-//               onClick={closeModal}
-//             >
-//               ✕
-//             </button>
-//             {
-//               selectedBenefit && (
-//                 <div className="benefit-container-hr">
-//                   <div className="benefit-photo-hr">
-//                     <img
-//                       src={userPhoto}
-//                       alt="user-photo"
-//                       style={{ borderRadius: '360px' }}
-//                     />
-
-//                   </div>
-//                   <div className='benefit-info-container' >
-//                     <p className="benefit-info-item-hr">
-//                       <label>Название льготы:</label>
-//                       {isEditing ? (
-//                         <input
-//                           type="text"
-//                           value={selectedBenefit.name || ''}
-//                           onChange={(e) => handleInputChange('name', e.target.value)}
-//                         />
-//                       ) : (
-//                         <span>{selectedBenefit.name}</span>
-//                       )}
-//                     </p>
-//                     <p className="benefit-info-item-hr">
-//                       <label>Требуемый стаж:</label>
-//                       {isEditing ? (
-//                         <input
-//                           type="text"
-//                           value={~~(selectedBenefit.experience_month / 12) || '0'}
-//                           onBlur={(e) => handleInputChange('experience_month_year', e.target.value)}
-//                         />
-
-//                       ) : (
-//                         <span>{~~(selectedBenefit.experience_month / 12)}</span>
-//                       )}
-//                       {isEditing ? (
-//                         <input
-//                           type="text"
-//                           value={selectedBenefit.experience_month % 12 || '0'}
-//                           onBlur={(e) => handleInputChange('experience_month', e.target.value)}
-//                         />
-
-//                       ) : (
-//                         <span>{selectedBenefit.experience_month % 12}</span>
-//                       )}
-//                     </p>
-
-
-
-//                   </div>
-
-//                 </div>
-//               )
-//             }
-
-//           </div>
-
-//         </div>
-//       )
-
-//       } */}
-
-
-//     </div>
-
-
-//   );
-// };
-
-// export default BenefitsHR;
 import { useEffect, useState } from 'react';
 import './BenefitHR.css';
 import benefitCreate from '../../imgs/benefitCreate.png';
@@ -406,7 +19,7 @@ const BenefitsHR = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/b/category/`, {
+      const response = await fetch(`http://26.15.99.17:8000/b/category/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -434,7 +47,7 @@ const BenefitsHR = () => {
   const fetchBenefits = async (currentPage) => {
     const start = (currentPage - 1) * usersPerPage;
     try {
-      const response = await fetch(`http://localhost:8000/b/benefit/?start=${start}&offset=${usersPerPage}`, {
+      const response = await fetch(`http://26.15.99.17:8000/b/benefit/?start=${start}&offset=${usersPerPage}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -464,7 +77,7 @@ const BenefitsHR = () => {
 
   const openModal = async (benefit) => {
     setIsCreating(false);
-    const response = await fetch(`http://localhost:8000/b/benefits/${benefit.uuid}/`, {
+    const response = await fetch(`http://26.15.99.17:8000/b/benefits/${benefit.uuid}/`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -474,7 +87,7 @@ const BenefitsHR = () => {
     const data = await response.json();
     setSelectedBenefit(data);
 
-    const photoResponse = await fetch(`http://localhost:8000/b/image/${data.main_photo}/`, {
+    const photoResponse = await fetch(`http://26.15.99.17:8000/b/image/${data.main_photo}/`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${access_token}`,
@@ -548,7 +161,7 @@ const BenefitsHR = () => {
 
   const fetchDeleteBenefit = async (benefitId) => {
     try {
-      const response = await fetch(`http://localhost:8000/b/benefit/${benefitId}/`, {
+      const response = await fetch(`http://26.15.99.17:8000/b/benefit/${benefitId}/`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -580,7 +193,7 @@ const BenefitsHR = () => {
     };
 
     try {
-      const response = await fetch(`http://localhost:8000/b/${selectedBenefit.uuid}/`, {
+      const response = await fetch(`http://26.15.99.17:8000/b/${selectedBenefit.uuid}/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -619,7 +232,7 @@ const BenefitsHR = () => {
     };
 
     try {
-      const response = await fetch(`http://localhost:8000/b/`, {
+      const response = await fetch(`http://26.15.99.17:8000/b/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -653,7 +266,7 @@ const BenefitsHR = () => {
     formData.append('photo', newPhoto);
 
     try {
-      const response = await fetch(`http://localhost:8000/b/${benefitId}/`, {
+      const response = await fetch(`http://26.15.99.17:8000/b/${benefitId}/`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${access_token}`,

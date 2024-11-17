@@ -222,36 +222,54 @@ const ChooseBenefit = () => {
 
       <div className="filters">
         <h3>Фильтры</h3>
-        <div>
-          <label>
-            <input
-              type="checkbox"
-              checked={filterByUCoin}
-              onChange={() => setFilterByUCoin((prev) => !prev)}
-            />
-            За UCoin
+        <div className="filter-wrapper">
+          <input
+            type="checkbox"
+            id="filter1"
+            className="filter-checkbox"
+            checked={filterByUCoin}
+            onChange={() => setFilterByUCoin((prev) => !prev)}
+          />
+          <label
+            className="label-for-input"
+            for="filter1"
+          >
+            <span className="filter-icon"></span>
+            <span className="filter-text">За UCoin</span>
           </label>
         </div>
 
-        <div>
-          <label>
-            <input
-              type="checkbox"
-              checked={filterSelected}
-              onChange={() => setFilterSelected((prev) => !prev)}
-            />
-            Выбранные льготы
+        <div className="filter-wrapper">
+          <input
+            type="checkbox"
+            id="filter2"
+            className="filter-checkbox"
+            checked={filterSelected}
+            onChange={() => setFilterSelected((prev) => !prev)}
+          />
+          <label
+            className="label-for-input"
+            for="filter2"
+          >
+            <span className="filter-icon"></span>
+            <span className="filter-text">Выбранные льготы</span>
           </label>
         </div>
 
-        <div>
-          <label>
-            <input
-              type="checkbox"
-              checked={filterAvailable}
-              onChange={() => setFilterAvailable((prev) => !prev)}
-            />
-            Доступные мне льготы
+        <div className="filter-wrapper">
+          <input
+            type="checkbox"
+            id="filter3"
+            className="filter-checkbox"
+            checked={filterAvailable}
+            onChange={() => setFilterAvailable((prev) => !prev)}
+          />
+          <label
+            className="label-for-input"
+            for="filter3"
+          >
+            <span className="filter-icon"></span>
+            <span className="filter-text">Доступные льготы</span>
           </label>
         </div>
       </div>
@@ -273,21 +291,23 @@ const ChooseBenefit = () => {
 
         <div className="card-container">
           {filteredBenefits.length > 0 ? (
-            filteredBenefits.sort((a, b) => b.available - a.available).map((benefit) => (
-              <BenefitCard
-                key={benefit.uuid}
-                benefit={benefit}
-                expandedBenefitId={isModalOpen ? null : expandedBenefit?.uuid}
-                toggleExpand={toggleExpand}
-                benefitImages={benefitImages}
-                handleFileChange={handleFileChange}
-                handleFileUpload={handleFileUpload}
-                chooseBenefit={chooseBenefit}
-                isUnavailable={submittedBenefits.includes(benefit.uuid) || benefit.ucoin > uCoin}
-                available={benefit.available}
-                bgrIcon={bgrIcon}
-              />
-            ))
+            filteredBenefits
+              .sort((a, b) => b.available - a.available)
+              .map((benefit) => (
+                <BenefitCard
+                  key={benefit.uuid}
+                  benefit={benefit}
+                  expandedBenefitId={isModalOpen ? null : expandedBenefit?.uuid}
+                  toggleExpand={toggleExpand}
+                  benefitImages={benefitImages}
+                  handleFileChange={handleFileChange}
+                  handleFileUpload={handleFileUpload}
+                  chooseBenefit={chooseBenefit}
+                  isUnavailable={submittedBenefits.includes(benefit.uuid) || benefit.ucoin > uCoin}
+                  available={benefit.available}
+                  bgrIcon={bgrIcon}
+                />
+              ))
           ) : (
             <p>{noBenefitMessage}</p>
           )}

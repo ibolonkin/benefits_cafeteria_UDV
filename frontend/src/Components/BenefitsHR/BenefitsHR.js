@@ -346,7 +346,7 @@ const BenefitsHR = () => {
         <div className="modal-overlay-benefit">
           <div className="modal-content-hr-benefit" onClick={(e) => e.stopPropagation()}>
             <div className='close-modal-div'>
-            <img className="close-modal-hr-benefit" onClick={closeModal} src={undo} width={'34px'} height={'34px'}/>
+            <img className="close-modal-hr-benefit" alt='close' onClick={closeModal} src={undo} width={'34px'} height={'34px'}/>
             <p className="close-modal-benefit-info-item-hr"> Редактирование льготы </p>
             </div>
             <div className="benefit-container-hr">

@@ -207,6 +207,7 @@ const ChooseBenefit = () => {
     } catch (error) {
       console.error('Ошибка при загрузке файла', error);
     }
+
   };
 
   return (
@@ -279,11 +280,11 @@ const ChooseBenefit = () => {
           <h3>Категории</h3>
           <ul className="benefit-list">
             <li>
-              <button onClick={() => setSelectedCategory(null)}>Все</button>
+              <button className={`category-item ${selectedCategory === null ? 'underlined' : ''}`} onClick={() => setSelectedCategory(null)}>Все</button>
             </li>
             {categories.map((category) => (
               <li key={category.id}>
-                <button onClick={() => setSelectedCategory(category.id)}>{category.name}</button>
+                <button className={`category-item ${selectedCategory === category.id ? 'underlined' : ''}`} onClick={() => setSelectedCategory(category.id)}>{category.name}</button>
               </li>
             ))}
           </ul>

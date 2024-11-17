@@ -1,7 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import './App.css';
 import Registration from './Components/Registration/Registration';
-import ProtectedRoute from './Components/ProtectedRoute';
+import ProtectedRoute from './Components/AuthProtectedRoute';
 import Dashboard from './Components/Dashboard/Dashboard';
 import Login from './Components/Login/Login';
 import ChooseBenefit from './Components/ChooseBenefit/ChooseBenefit';
@@ -25,6 +25,27 @@ function App() {
           path="/"
           element={<Registration />}
         />
+
+        <Route
+          path="/*"
+          element={
+            <Navigate
+              to="/dashboard"
+              replace
+            />
+          }
+        />
+
+        <Route
+          path="/dashboard/*"
+          element={
+            <Navigate
+              to="/dashboard"
+              replace
+            />
+          }
+        />
+
         <Route
           path="/login"
           element={<Login />}

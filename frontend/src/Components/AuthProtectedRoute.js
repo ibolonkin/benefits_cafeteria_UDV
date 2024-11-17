@@ -2,7 +2,7 @@ import { useContext, useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { AuthContext } from './AuthContext';
 
-const ProtectedRoute = ({ component: Component }) => {
+const AuthProtectedRoute = ({ component: Component }) => {
   const { isAuth, checkAuthStatus } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
@@ -12,7 +12,7 @@ const ProtectedRoute = ({ component: Component }) => {
       setLoading(false);
     };
     checkAuth();
-  }, [checkAuthStatus]);
+  }, []);
 
   if (loading) {
     return (
@@ -30,4 +30,4 @@ const ProtectedRoute = ({ component: Component }) => {
   return isAuth ? <Component /> : <Navigate to="/login" />;
 };
 
-export default ProtectedRoute;
+export default AuthProtectedRoute;

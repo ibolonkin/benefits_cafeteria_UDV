@@ -1,16 +1,17 @@
 from fastapi import APIRouter, Depends
-from .handlerDB import get_user_uuid_req, get_users_offset, update_user_db
-from .handlerDbAdminNew import update_application_db
-from .helper import get_superUser_payload
-from .shemas import User, GetAllUsers, UserWithbenefit
-from ..benefits.shemasU import UserBenefit
+
+
+from src.users.admin.handler import get_users_offset, update_user_db, get_user_uuid_selectLoad
+from src.users.admin.shemas import GetAllUsers
+from src.users.shemas import UserWithbenefit, User
+from src.utils import get_superUser_payload
 
 router = APIRouter(dependencies=[Depends(get_superUser_payload)],
-                   responses={403: {'detail': "FORBIDDEN"}, 401: {'detail': "NOT AUTHORIZED"}})
+                   responses={403: {'detail': "FORBIDDEN"}, 401: {'detail': "NOT AUTHORIZED"}}, tags=['Admin: Users'])
 
 
 @router.get('/{user_uuid}/')
-async def read_user(user=Depends(get_user_uuid_req)) -> UserWithbenefit:
+async def read_user(user=Depends(get_user_uuid_selectLoad)) -> UserWithbenefit:
     return UserWithbenefit.model_validate(user, from_attributes=True)
 
 
@@ -25,8 +26,3 @@ async def read_all_users(obj=Depends(get_users_offset)) -> GetAllUsers:
 @router.put('/{user_id}/')
 async def update_user(user=Depends(update_user_db)):
     return User.model_validate(user, from_attributes=True)
-
-@router.post('/{user_uuid}/{benefit_id}/')
-async def update_to_application(update_application=Depends(update_application_db)) -> UserBenefit:
-    return update_application
-    pass

@@ -1,11 +1,12 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import RedirectResponse
-from .users.router import router as user_router
-from .benefits.router import router as benefits_router
 
-app = FastAPI(
-)
+from src.statistics.router import router as test_router
+from src.users.router import router as user_router
+from src.benefits.router import router as benefits_router
+
+app = FastAPI()
 
 origins = [
     "http://26.25.133.178:3000",
@@ -15,7 +16,6 @@ origins = [
     "http://localhost:8000",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    
 
     "http://192.168.65.1:3000"
 ]
@@ -27,6 +27,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # @app.on_event("startup")
 # async def startup(startup=Depends(create_super_user)):
@@ -41,3 +42,4 @@ async def root():
 
 app.include_router(user_router)
 app.include_router(benefits_router)
+app.include_router(test_router)

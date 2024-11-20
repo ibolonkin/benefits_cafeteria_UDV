@@ -17,6 +17,7 @@ async def get_FirstLastName(user=Depends(get_active_user)):
 
 async def get_user_info_benefit(user_inf=Depends(get_active_payload), session=Depends(get_async_session)):
     query = select(UsersORM).where(user_inf.uuid == UsersORM.uuid).options(selectinload(UsersORM.applications),
-                                                                           selectinload(UsersORM.approved_benefits))
+                                                                           selectinload(UsersORM.approved_benefits),
+                                                                           selectinload(UsersORM.history))
     userOrm = (await session.execute(query)).scalar()
     return userOrm

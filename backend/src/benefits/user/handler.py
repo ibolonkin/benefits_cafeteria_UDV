@@ -14,7 +14,6 @@ from src.handler import get_active_user
 async def choice_benefit_db(userOrm=Depends(get_active_user),
                             benefit: BenefitsORM = Depends(get_benefit),
                             session: AsyncSession = Depends(get_async_session)):
-
     if not benefit.is_published or not benefit.category.is_published:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Бенефит не доступен для выбора')
 
@@ -38,6 +37,11 @@ async def choice_benefit_db(userOrm=Depends(get_active_user),
     else:
         uCoin = False
 
+    await session.refresh(userOrm, attribute_names=['applications', 'approved_benefits', 'history'])
+    if not userOrm.can_application(benefit.uuid):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail='Ты уже отправил заявку либо тебе ещё нельзя отправить заявку')
+
     try:
         userBenefit = ApplicationORM(user_uuid=userOrm.uuid, benefit_uuid=benefit.uuid)
         session.add(userBenefit)
@@ -47,7 +51,8 @@ async def choice_benefit_db(userOrm=Depends(get_active_user),
         userBenefit = (await session.execute(query)).scalar()
         if uCoin:
             userOrm.ucoin -= benefit.ucoin
-    except:
+    except Exception as e:
+        print(e)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Вы уже подали заявку')
     await session.commit()
     return userBenefit

@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 
 from fastapi import Depends, HTTPException, status, Query, UploadFile, File
 from sqlalchemy import select, and_, func, update, asc, desc
@@ -7,9 +7,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.base import get_async_session
 from .shemas import AnswerStatus, ApplicationStatus, BenefitUpdate, UpdateCategory
 from src.benefits.handler import get_benefit, get_category
-from src.benefits.models import ApplicationORM, CategoryORM, BenefitsORM, Image
+from src.benefits.models import ApplicationORM, CategoryORM, BenefitsORM, Image, HistoryBenefitsORM, ApprovedBenefitsORM
 from src.handler import get_user_uuid
 from src.benefits.shemas import Category, Benefit, BenefitCreate, CategoryCreate
+
+#  Плохо что использую это тут наверно надо как то по другому придумать
 from ...users.models import UserProfilesORM, UsersORM
 
 
@@ -22,7 +24,7 @@ def create_in_db(orm_cls, validate_cls, cls_accept):
             model_new = validate_cls.model_validate(model_orm, from_attributes=True)
             await session.commit()
             return model_new
-        except Exception as e:
+        except:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
 
     return create_model_db
@@ -32,6 +34,8 @@ create_category_db = create_in_db(CategoryORM, Category, CategoryCreate)
 create_benefit_db = create_in_db(BenefitsORM, Benefit, BenefitCreate)
 
 
+#  TODO: Добавить 3 таблицы во внутрь так что бы эта функция существовала,
+#   а так это чисто админская функция что бы добавить кому угодно в любой момент льготу
 async def update_application_db(new_status: AnswerStatus, user=Depends(get_user_uuid),
                                 benefit=Depends(get_benefit), session=Depends(get_async_session)):
     if not new_status.status:
@@ -116,7 +120,6 @@ add_photo_benefit = add_photo_create(get_benefit, 'main_photo')
 add_photo_category = add_photo_create(get_benefit, 'photo')
 
 
-
 async def delete_category(category_id: int, session: AsyncSession = Depends(get_async_session)):
     try:
         update(BenefitsORM).filter(category_id == BenefitsORM.category_id).values(**{'category_id': None})
@@ -180,6 +183,7 @@ async def get_all_application_db(start: int = Query(0, ge=0), offset: int = Quer
         query = select(ApplicationORM)
         match order_by:
             case "name":
+
                 order = UserProfilesORM.firstname
                 query = (query
                          .join(UsersORM, UsersORM.uuid == ApplicationORM.user_uuid)
@@ -239,16 +243,26 @@ async def update_status_application(statusAp: ApplicationStatus,
                                     application=Depends(get_application),
                                     session: AsyncSession = Depends(get_async_session)):
     if application.status == "Pending":
+        user = await get_user_uuid(application.user.uuid, session=session)
         if statusAp.status == 'Denied':
-            user = await get_user_uuid(application.user.uuid, session=session)
             user.ucoin += application.benefit.ucoin
-        application.status = statusAp.status
-        application.update_at = date.today()
+            obj = HistoryBenefitsORM(user_uuid=user.uuid, benefit_uuid=application.benefit.uuid, status='Denied')
+            session.add(obj)
+        else:
+            if application.benefit.duration_in_days:
+                end_date = date.today() + timedelta(application.benefit.duration_in_days)
+            else:
+                end_date = None
+
+            obj = ApprovedBenefitsORM(user_uuid=user.uuid, benefit_uuid=application.benefit.uuid, end_date=end_date)
+            session.add(obj)
+        await session.delete(application)
+
         await session.commit()
-        await session.refresh(application)
+
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
-    return application
+    return obj
 
 
 async def delete_benefit_db(benefit=Depends(get_benefit), session=Depends(get_async_session)):

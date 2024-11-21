@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import RedirectResponse
 
 from src.base import async_session_maker
-from src.file_tasks import process_expired_benefits
+from src.file_tasks import process_expired_benefits, create_super_user
 from src.statistics.router import router as test_router
 from src.users.router import router as user_router
 from src.benefits.router import router as benefits_router
@@ -44,9 +44,15 @@ async def scheduled_task():
     async with async_session_maker() as session:
         await process_expired_benefits(session)
 
+async def create_admin():
+    async with async_session_maker() as session:
+        await create_super_user(session)
+
 @app.on_event("startup")
 async def startup_event():
+    await create_admin()
     scheduler.start()
+
 
 @app.on_event("shutdown")
 async def shutdown_event():

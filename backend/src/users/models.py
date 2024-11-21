@@ -18,7 +18,7 @@ class UsersORM(Base):
     adap_period: Mapped[bool] = mapped_column(nullable=False, server_default='False')
 
     profile: Mapped["UserProfilesORM"] = relationship(
-        back_populates="user", lazy="joined", uselist=False
+        back_populates="user", lazy="joined", uselist=False,  cascade="all, delete"
     )
     applications: Mapped[list["ApplicationORM"]] = relationship(
         back_populates="user", cascade="all, delete", lazy="select"

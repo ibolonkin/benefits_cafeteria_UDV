@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.base import get_async_session
+from src.config import settings
 from src.handler import get_user_uuid
 from src.users.admin.shemas import UserAll, UserUpdate
 from src.users.models import UserProfilesORM, UsersORM
@@ -31,7 +32,7 @@ async def get_users_offset(start: int = Query(0, ge=0), offset: int = Query(5, g
     if not order:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, )
 
-    query = select(UsersORM).join(UserProfilesORM)
+    query = select(UsersORM).join(UserProfilesORM).where(UsersORM.email != settings.email)
 
     if sort_order == "asc":
         query = query.order_by(asc(order))
@@ -42,7 +43,7 @@ async def get_users_offset(start: int = Query(0, ge=0), offset: int = Query(5, g
 
     query = query.slice(start, start + offset)
     users = (await session.execute(query)).unique().scalars()
-    query = select(func.count()).select_from(UsersORM)
+    query = select(func.count()).select_from(UsersORM).where(UsersORM.email != settings.email)
     result = await session.execute(query)
     count = result.scalar()
 

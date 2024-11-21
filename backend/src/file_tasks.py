@@ -1,10 +1,12 @@
+import hashlib
 from datetime import date
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.benefits.models import ApprovedBenefitsORM, HistoryBenefitsORM
-
+from src.users.models import UsersORM, UserProfilesORM
+from src.config import settings
 
 async def process_expired_benefits(session: AsyncSession):
     today = date.today()
@@ -20,5 +22,25 @@ async def process_expired_benefits(session: AsyncSession):
         session.add(history_record)
 
         await session.delete(application)
+
+    await session.commit()
+
+async def create_super_user(session: AsyncSession):
+    query = select(UsersORM).where(settings.email == UsersORM.email)
+    user = (await session.execute(query)).scalar()
+    if not user:
+        hash_password = hashlib.sha256(settings.password.encode('utf-8')).hexdigest()
+        user = UsersORM(email=settings.email, hash_password=hash_password)
+        session.add(user)
+        await session.flush()
+        userProfile = UserProfilesORM(user_uuid=user.uuid,
+                                      firstname=settings.firstname,
+                                      lastname=settings.lastname,
+                                      middlename=settings.middlename,
+                                      )
+        session.add(userProfile)
+
+    user.super_user = True
+    user.ucoin = 9999
 
     await session.commit()

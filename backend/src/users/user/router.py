@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 
-from src.users.shemas import UserWithbenefit
+from src.handler import get_active_user
 from src.users.user.handler import get_coins_db, get_FirstLastName, get_user_info_benefit
 from src.users.user.shemas import UCoin, Check
 
@@ -17,9 +17,9 @@ async def get_coin(coins=Depends(get_coins_db)) -> UCoin:
 
 
 @router.get('/info/')
-async def get_my_info(user=Depends(get_user_info_benefit)) -> UserWithbenefit:
+async def get_my_info(user=Depends(get_active_user)):
     return user
 
 @router.get('/benefits/')
-async def get_my_benefit(user=Depends(get_user_info_benefit)):
-    return user.benefits
+async def get_my_benefit(benefits=Depends(get_user_info_benefit)):
+    return benefits

@@ -7,4 +7,4 @@ router = APIRouter(prefix='/b')
 
 
 router.include_router(router_admin)
-router.include_router(router_user, tags=['Benefit: User'])
+router.include_router(router_user, tags=['User: Benefit'])

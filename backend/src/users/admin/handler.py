@@ -8,11 +8,13 @@ from src.handler import get_user_uuid
 from src.users.admin.shemas import UserAll, UserUpdate
 from src.users.models import UserProfilesORM, UsersORM
 
-async def get_user_uuid_selectLoad(user_uuid: str, session: AsyncSession = Depends(get_async_session)):
+async def get_user_benefits_uuid(user_uuid: str, session: AsyncSession = Depends(get_async_session)):
     try:
-        query = select(UsersORM).where(user_uuid == UsersORM.uuid).options(selectinload(UsersORM.applications))
+        query = select(UsersORM).where(user_uuid == UsersORM.uuid).options(selectinload(UsersORM.approved_benefits),
+                                                                           selectinload(UsersORM.history),
+                                                                           selectinload(UsersORM.applications),)
         if user := (await session.execute(query)).scalar():
-            return user
+            return user.benefits
         raise Exception
     except:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="NOT FOUND")

@@ -1,12 +1,17 @@
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import RedirectResponse
 
+from src.base import async_session_maker
+from src.file_tasks import process_expired_benefits
 from src.statistics.router import router as test_router
 from src.users.router import router as user_router
 from src.benefits.router import router as benefits_router
 
 app = FastAPI()
+scheduler = AsyncIOScheduler()
 
 origins = [
     "http://26.25.133.178:3000",
@@ -34,6 +39,18 @@ app.add_middleware(
 #     startup = None
 #     pass
 
+@scheduler.scheduled_job(CronTrigger(hour=0, minute=1))
+async def scheduled_task():
+    async with async_session_maker() as session:
+        await process_expired_benefits(session)
+
+@app.on_event("startup")
+async def startup_event():
+    scheduler.start()
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    scheduler.shutdown()
 
 @app.get('/')
 async def root():

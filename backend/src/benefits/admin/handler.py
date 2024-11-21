@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 
-from fastapi import Depends, HTTPException, status, Query, UploadFile, File
+from fastapi import Depends, HTTPException, status, Query, UploadFile, File, Path
 from sqlalchemy import select, and_, func, update, asc, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -151,9 +151,10 @@ async def update_benefit_db(uuid_orm: str, benefit_inf: BenefitUpdate,
     return benefit
 
 
-async def update_category_db(category_id: int,
-                             category: UpdateCategory,
-                             session: AsyncSession = Depends(get_async_session)):
+async def update_category_db(
+        category: UpdateCategory,
+        category_id: int = Path(..., ge=0),
+        session: AsyncSession = Depends(get_async_session)):
     if category.dict(exclude_unset=True):
         try:
             stmt = update(CategoryORM).where(category_id == CategoryORM.id).values(
@@ -223,20 +224,20 @@ async def get_all_application_db(start: int = Query(0, ge=0), offset: int = Quer
     return {'applications': user_benefits, 'len': count}
 
 
-async def get_application(application_id: int, session=Depends(get_async_session)):
+async def get_application(application_id: int = Path(..., ge=0), session=Depends(get_async_session)):
     if user_benefit := await session.get(ApplicationORM, application_id):
         return user_benefit
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
 
-async def get_application_pending(application_id: int, session=Depends(get_async_session)):
-    try:
-        query = select(ApplicationORM).where(
-            and_(application_id == ApplicationORM.id, ApplicationORM.status == 'Pending'))
-        res = (await session.execute(query)).scalar()
-        return res
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+# async def get_application_pending(application_id: int, session=Depends(get_async_session)):
+#     try:
+#         query = select(ApplicationORM).where(
+#             and_(application_id == ApplicationORM.id, ApplicationORM.status == 'Pending'))
+#         res = (await session.execute(query)).scalar()
+#         return res
+#     except Exception as e:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
 
 async def update_status_application(statusAp: ApplicationStatus,

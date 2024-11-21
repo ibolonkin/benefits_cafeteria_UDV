@@ -1,18 +1,22 @@
 from fastapi import APIRouter, Depends
 
-
-from src.users.admin.handler import get_users_offset, update_user_db, get_user_uuid_selectLoad
+from src.handler import get_user_uuid
+from src.users.admin.handler import get_users_offset, update_user_db, get_user_benefits_uuid
 from src.users.admin.shemas import GetAllUsers
-from src.users.shemas import UserWithbenefit, User
+from src.users.shemas import  User
 from src.utils import get_superUser_payload
 
 router = APIRouter(dependencies=[Depends(get_superUser_payload)],
                    responses={403: {'detail': "FORBIDDEN"}, 401: {'detail': "NOT AUTHORIZED"}}, tags=['Admin: Users'])
 
 
-@router.get('/{user_uuid}/')
-async def read_user(user=Depends(get_user_uuid_selectLoad)) -> UserWithbenefit:
-    return UserWithbenefit.model_validate(user, from_attributes=True)
+@router.get('/{user_uuid}/info')
+async def read_user(user=Depends(get_user_uuid)):
+    return user
+
+@router.get('/{user_uuid}/benefits')
+async def read_user_benefits(benefits=Depends(get_user_benefits_uuid)):
+    return benefits
 
 
 @router.get('/',

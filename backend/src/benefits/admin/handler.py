@@ -13,6 +13,7 @@ from src.benefits.shemas import Category, Benefit, BenefitCreate, CategoryCreate
 
 #  Плохо что использую это тут наверно надо как то по другому придумать
 from ...users.models import UserProfilesORM, UsersORM
+from ...utils import validate_file
 
 
 def create_in_db(orm_cls, validate_cls, cls_accept):
@@ -71,8 +72,33 @@ async def update_application_db(new_status: AnswerStatus, user=Depends(get_user_
 
 
 async def get_all_benefit_admin(start: int = Query(0, ge=0), offset: int = Query(5, ge=1, le=20),
+                                order_by: str = Query('is_published'),
+                                sort_order: str = Query("asc"),
                                 session: AsyncSession = Depends(get_async_session)):
-    query = select(BenefitsORM).order_by(BenefitsORM.name)
+    query = select(BenefitsORM)
+
+    if ((order_by and order_by not in {'is_published', 'name', 'category', "experience_month"}) or
+            (sort_order and sort_order not in {"asc", "desc"})):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+
+    match order_by:
+        case "is_published":
+            order = BenefitsORM.is_published
+        case 'name':
+            order = BenefitsORM.name
+        case "experience_month":
+            order = BenefitsORM.experience_month
+
+        case 'category':
+            order = CategoryORM.name
+            query = (query
+                     .outerjoin(CategoryORM, CategoryORM.id == BenefitsORM.category_id))
+        case _:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+    if sort_order == 'asc':
+        query = query.order_by(asc(order))
+    else:
+        query = query.order_by(desc(order))
 
     if start and offset:
         query = query.slice(start, start + offset)
@@ -88,12 +114,6 @@ async def get_all_benefit_admin(start: int = Query(0, ge=0), offset: int = Query
     return {'benefits': benefits, 'len': count}
 
 
-async def validate_file(photo: UploadFile = File(..., media_type='image')):
-    if not photo.content_type.startswith('image/'):
-        raise HTTPException(status_code=400, detail="File type not supported. Please upload images.")
-    return await photo.read()
-
-
 async def add_photo(photo=Depends(validate_file), session=Depends(get_async_session)):
     image = Image(data=photo)
     session.add(image)
@@ -101,23 +121,66 @@ async def add_photo(photo=Depends(validate_file), session=Depends(get_async_sess
     return image
 
 
-def add_photo_create(foo_get_orm, name_att):
+def add_photo_create(foo_get_orm, name_obj):
     async def add_photo_orm(obj=Depends(foo_get_orm),
                             image=Depends(add_photo),
                             session=Depends(get_async_session)):
-        att = getattr(obj, name_att)
+        if name_obj == "category":
+            att = obj.photo
+        else:
+            att = obj.main_photo
         if att:
             image_old = await session.get(Image, att)
             await session.delete(image_old)
-        att = image.id
+        if name_obj == "category":
+            obj.photo = image.id
+        else:
+            obj.main_photo = image.id
         await session.commit()
         return obj
 
     return add_photo_orm
 
 
-add_photo_benefit = add_photo_create(get_benefit, 'main_photo')
-add_photo_category = add_photo_create(get_benefit, 'photo')
+async def delete_photo(idx: int, session: AsyncSession = Depends(get_async_session)):
+    try:
+
+        image = await session.get(Image, idx)
+
+        if image:
+            await session.delete(image)
+            await session.commit()
+            return
+        raise
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='not photo')
+
+
+def delete_photo_create(foo_get_orm, name_obj):
+    async def delete_photo_orm(obj=Depends(foo_get_orm),
+                               session=Depends(get_async_session)):
+        if name_obj == "category":
+            att = obj.photo
+            obj.photo = None
+        else:
+            att = obj.main_photo
+            obj.main_photo = None
+        if att:
+            await delete_photo(att, session=session)
+        else:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='not photo')
+        await session.refresh(obj)
+        return obj
+
+    return delete_photo_orm
+
+
+add_photo_benefit = add_photo_create(get_benefit, 'benefit')
+add_photo_category = add_photo_create(get_category, 'category')
+
+delete_photo_benefit = delete_photo_create(get_benefit, 'benefit')
+delete_photo_category = delete_photo_create(get_category, 'category')
 
 
 async def delete_category(category_id: int, session: AsyncSession = Depends(get_async_session)):
@@ -247,7 +310,8 @@ async def update_status_application(statusAp: ApplicationStatus,
         user = await get_user_uuid(application.user.uuid, session=session)
         if statusAp.status == 'Denied':
             user.ucoin += application.benefit.ucoin
-            obj = HistoryBenefitsORM(user_uuid=user.uuid, benefit_uuid=application.benefit.uuid, status='Denied')
+            obj = HistoryBenefitsORM(user_uuid=user.uuid, benefit_uuid=application.benefit.uuid, status='Denied',
+                                     msg=statusAp.msg)
             session.add(obj)
         else:
             if application.benefit.duration_in_days:

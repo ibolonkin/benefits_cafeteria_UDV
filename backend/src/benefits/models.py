@@ -85,7 +85,7 @@ class HistoryBenefitsORM(Base):
     benefit_uuid: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('benefits.uuid'), nullable=False,
                                                index=True)
     status: Mapped[str] = mapped_column(nullable=False, server_default="Terminated")
-
+    msg: Mapped[str] = mapped_column(nullable=True)
     __table_args__ = (
         CheckConstraint("status IN ( 'Denied', 'Terminated')", name="check_status_history"),
     )

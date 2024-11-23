@@ -33,12 +33,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# @app.on_event("startup")
-# async def startup(startup=Depends(create_super_user)):
-#     startup = None
-#     pass
-
 @scheduler.scheduled_job(CronTrigger(hour=0, minute=1))
 async def scheduled_task():
     async with async_session_maker() as session:

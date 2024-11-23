@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 
-from src.benefits.admin.handler import create_category_db, create_benefit_db, add_photo_benefit, add_photo_category, \
-    delete_category, delete_benefit_db, update_benefit_db, update_category_db, get_all_application_db, get_application, \
-    update_status_application, get_all_benefit_admin
+from src.benefits.admin.handler import (create_category_db, create_benefit_db, add_photo_benefit, add_photo_category,
+                                        delete_category, delete_benefit_db, update_benefit_db, update_category_db,
+                                        get_all_application_db, get_application,
+                                        update_status_application, get_all_benefit_admin,
+                                        delete_photo_benefit, delete_photo_category)
 from src.benefits.admin.shemas import ApplicationAll, UserBenefitPending
 from src.benefits.handler import get_categories, get_benefit
 from src.benefits.shemas import Benefit, BenefitCategory, CategoryAdmin
@@ -13,13 +15,14 @@ router = APIRouter(dependencies=[Depends(get_superUser_payload)])
 routerApplication = APIRouter(tags=["Admin: Application"])
 routerBenefits = APIRouter(tags=["Admin: Benefits"])
 
-@routerBenefits.post('/categories/')
+
+@routerBenefits.post('/categories/', status_code=status.HTTP_201_CREATED)
 async def create_category(category: CategoryAdmin = Depends(create_category_db)):
     return category
 
 
-@routerBenefits.post("/benefits/")
-async def create_benefit(benefit: Benefit = Depends(create_benefit_db)):
+@routerBenefits.post("/benefits/", status_code=status.HTTP_201_CREATED)
+async def create_benefit(benefit: Benefit = Depends(create_benefit_db), ):
     return benefit
 
 
@@ -79,9 +82,21 @@ async def get_benefit_admin(obj=Depends(get_all_benefit_admin)):
 async def get_category_admin(categories=Depends(get_categories)) -> list[CategoryAdmin]:
     return [CategoryAdmin.model_validate(c, from_attributes=True) for c in categories]
 
+
 @routerBenefits.get('/a/benefits/{uuid_orm}')
 async def get_benefit_admin(obj=Depends(get_benefit)):
     return obj
+
+
+@routerBenefits.delete('/benefits/{uuid_orm}/delete/photo', dependencies=[Depends(delete_photo_benefit)])
+async def delete_photo_benefit():
+    pass
+
+
+@routerBenefits.delete('/categories/{uuid_orm}/delete/photo', dependencies=[Depends(delete_photo_category)])
+async def delete_photo_category():
+    pass
+
 
 router.include_router(routerApplication)
 router.include_router(routerBenefits)

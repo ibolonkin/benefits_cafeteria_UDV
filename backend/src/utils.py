@@ -1,8 +1,9 @@
+
 import jwt
 
 from datetime import timedelta, datetime, timezone
 from pydantic import BaseModel, UUID4
-from fastapi import Depends, HTTPException, status, Request
+from fastapi import Depends, HTTPException, status, Request, UploadFile, File
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from src.config import settings
@@ -140,3 +141,8 @@ async def get_superUser_payload(userInf=Depends(get_active_payload)):
     if userInf.super_user:
         return userInf
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='FORBIDDEN')
+
+async def validate_file(photo: UploadFile = File(..., media_type='image')):
+    if not photo.content_type.startswith('image/'):
+        raise HTTPException(status_code=400, detail="File type not supported. Please upload images.")
+    return await photo.read()

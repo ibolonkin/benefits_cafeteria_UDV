@@ -29,6 +29,10 @@ class Settings(SuperUser):
     DB_NAME: str
     DB_USER: str
     DB_PASS: str
+
+    EMAIL_HOST: str
+    EMAIL_HOST_PASSWORD: str
+
     model_config = SettingsConfigDict(env_file=".env")
     auth_jwt: AuthJWT = AuthJWT()
 

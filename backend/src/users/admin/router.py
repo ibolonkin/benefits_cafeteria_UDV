@@ -1,9 +1,14 @@
+from io import BytesIO
+
 from fastapi import APIRouter, Depends
+from starlette.responses import StreamingResponse
 
 from src.handler import get_user_uuid
-from src.users.admin.handler import get_users_offset, update_user_db, get_user_benefits_uuid
+from src.users.admin.handler import (get_users_offset, update_user_db,
+                                     get_user_benefits_uuid, get_user_photo_admin,
+                                     delete_photo_user,update_photo_user)
 from src.users.admin.shemas import GetAllUsers
-from src.users.shemas import  User
+from src.users.shemas import User
 from src.utils import get_superUser_payload
 
 router = APIRouter(dependencies=[Depends(get_superUser_payload)],
@@ -14,9 +19,25 @@ router = APIRouter(dependencies=[Depends(get_superUser_payload)],
 async def read_user(user=Depends(get_user_uuid)):
     return user
 
+
 @router.get('/{user_uuid}/benefits')
 async def read_user_benefits(benefits=Depends(get_user_benefits_uuid)):
     return benefits
+
+
+@router.get('/{user_uuid}/photo')
+async def read_user_photo(data=Depends(get_user_photo_admin)):
+    return StreamingResponse(BytesIO(data.data), media_type="image/jpeg")
+
+
+@router.delete('/{user_uuid}/photo/delete', dependencies=[Depends(delete_photo_user)])
+async def delete_user_photo():
+    return
+
+
+@router.patch('/{user_uuid}/photo/update')
+async def update_user_photo(user=Depends(update_photo_user)):
+    return user
 
 
 @router.get('/',

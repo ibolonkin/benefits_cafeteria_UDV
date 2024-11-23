@@ -4,21 +4,24 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.base import get_async_session
+from src.utils import validate_file
 from src.config import settings
 from src.handler import get_user_uuid
 from src.users.admin.shemas import UserAll, UserUpdate
-from src.users.models import UserProfilesORM, UsersORM
+from src.users.models import UserProfilesORM, UsersORM, UserImages
+
 
 async def get_user_benefits_uuid(user_uuid: str, session: AsyncSession = Depends(get_async_session)):
     try:
         query = select(UsersORM).where(user_uuid == UsersORM.uuid).options(selectinload(UsersORM.approved_benefits),
                                                                            selectinload(UsersORM.history),
-                                                                           selectinload(UsersORM.applications),)
+                                                                           selectinload(UsersORM.applications), )
         if user := (await session.execute(query)).scalar():
             return user.benefits
         raise Exception
     except:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="NOT FOUND")
+
 
 async def get_users_offset(start: int = Query(0, ge=0), offset: int = Query(5, ge=1, le=20),
                            order_by: str = Query('name'),
@@ -80,3 +83,38 @@ async def update_user_db(user_id: str, new_user: UserUpdate, session: AsyncSessi
     user = await get_user_uuid(user_id, session)
 
     return user
+
+
+async def get_user_photo_admin(user_uuid, session: AsyncSession = Depends(get_async_session)):
+    try:
+        data = await session.get(UserImages, user_uuid)
+        if not data:
+            raise
+        return data
+    except:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+
+async def delete_photo_user(user_uuid, session: AsyncSession = Depends(get_async_session)):
+    try:
+        image = await get_user_photo_admin(user_uuid, session)
+        await session.delete(image)
+        await session.commit()
+    except:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+
+async def update_photo_user(user_uuid,
+                            photo=Depends(validate_file),
+                            session: AsyncSession = Depends(get_async_session)):
+    try:
+        image = await get_user_photo_admin(user_uuid, session)
+        await session.delete(image)
+    except:
+        pass
+    finally:
+        await session.flush()
+        image = UserImages(user_uuid=user_uuid, data=photo)
+        session.add(image)
+        await session.commit()
+    return await get_user_uuid(user_uuid, session)

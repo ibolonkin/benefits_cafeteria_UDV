@@ -41,6 +41,7 @@ class BenefitApplication(BaseModel):
 
 class ApplicationStatus(BaseModel):
     status: Literal["Denied", "Approved"]
+    msg: str | None
 
 class AnswerStatus(BaseModel):
     status: Literal["Denied", "Approved", "Pending"] | None

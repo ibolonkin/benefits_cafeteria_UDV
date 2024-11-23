@@ -7,11 +7,13 @@ STRING = r'\S.+|\S'
 
 class CategoryCreate(BaseModel):
     name: str = Field(pattern=STRING, min_length=1, example='string')
+    is_published: bool
 
 
 class Category(CategoryCreate):
     id: int
     photo: int | None = Field(..., ge=0)
+    is_published: bool
 
 
 class CategoryAdmin(Category):

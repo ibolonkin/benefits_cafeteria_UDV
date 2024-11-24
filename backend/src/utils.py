@@ -1,4 +1,3 @@
-
 import jwt
 
 from datetime import timedelta, datetime, timezone
@@ -17,6 +16,7 @@ class Token(BaseModel):
     token_type: str = 'Bearer'
     accessToken: str
 
+
 class UserInfo(BaseModel):
     uuid: UUID4
     active: bool
@@ -26,6 +26,7 @@ class UserInfo(BaseModel):
         if hasattr(self, att):
             return getattr(self, att)
         return None
+
 
 def encode_jwt(
         payload: dict,
@@ -75,7 +76,7 @@ def create_refresh_token(user) -> str:
                       expire_timedelta=timedelta(days=settings.auth_jwt.refresh_token_expire_days))
 
 
-def create_tokens(user_inf, response):
+def create_tokens(user_inf, response) -> Token:
     access_token = create_access_token(user_inf)
     refresh_token = create_refresh_token(user_inf)
     response.set_cookie(key=settings.auth_jwt.key_cookie, value=refresh_token,
@@ -117,7 +118,7 @@ def decode_jwt_token(token, token_type):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='invalid token')
 
 
-async def get_payload_access(credentials: HTTPAuthorizationCredentials = Depends(http_bearer)):
+async def get_payload_access(credentials: HTTPAuthorizationCredentials = Depends(http_bearer)) -> UserInfo:
     try:
         token = credentials.credentials
     except:
@@ -131,16 +132,17 @@ async def get_payload_refresh(request: Request):
     return payload
 
 
-async def get_active_payload(userInf=Depends(get_payload_access)):
+async def get_active_payload(userInf=Depends(get_payload_access)) -> UserInfo:
     if userInf.active:
         return userInf
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='User not active')
 
 
-async def get_superUser_payload(userInf=Depends(get_active_payload)):
+async def get_superUser_payload(userInf=Depends(get_active_payload)) -> UserInfo:
     if userInf.super_user:
         return userInf
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='FORBIDDEN')
+
 
 async def validate_file(photo: UploadFile = File(..., media_type='image')):
     if not photo.content_type.startswith('image/'):

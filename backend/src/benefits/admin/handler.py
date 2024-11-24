@@ -1,15 +1,15 @@
 from datetime import date, timedelta
 
-from fastapi import Depends, HTTPException, status, Query, UploadFile, File, Path
+from fastapi import Depends, HTTPException, status, Query, Path
 from sqlalchemy import select, and_, func, update, asc, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.base import get_async_session
-from .shemas import AnswerStatus, ApplicationStatus, BenefitUpdate, UpdateCategory
+from .shemas import BenefitUpdate, UpdateCategory, CategoryCreate, AnswerStatus
 from src.benefits.handler import get_benefit, get_category
 from src.benefits.models import ApplicationORM, CategoryORM, BenefitsORM, Image, HistoryBenefitsORM, ApprovedBenefitsORM
 from src.handler import get_user_uuid
-from src.benefits.shemas import Category, Benefit, BenefitCreate, CategoryCreate
+from src.benefits.shemas import  BenefitCreate, CategoryAdmin, BenefitAdmin
 
 #  Плохо что использую это тут наверно надо как то по другому придумать
 from ...users.models import UserProfilesORM, UsersORM
@@ -22,17 +22,19 @@ def create_in_db(orm_cls, validate_cls, cls_accept):
             model_orm = orm_cls(**model.dict())
             session.add(model_orm)
             await session.flush()
+            await session.refresh(model_orm)
             model_new = validate_cls.model_validate(model_orm, from_attributes=True)
             await session.commit()
             return model_new
         except:
+
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
 
     return create_model_db
 
 
-create_category_db = create_in_db(CategoryORM, Category, CategoryCreate)
-create_benefit_db = create_in_db(BenefitsORM, Benefit, BenefitCreate)
+create_category_db = create_in_db(CategoryORM, CategoryAdmin, CategoryCreate)
+create_benefit_db = create_in_db(BenefitsORM, BenefitAdmin, BenefitCreate)
 
 
 #  TODO: Добавить 3 таблицы во внутрь так что бы эта функция существовала,
@@ -303,7 +305,7 @@ async def get_application(application_id: int = Path(..., ge=0), session=Depends
 #         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
 
-async def update_status_application(statusAp: ApplicationStatus,
+async def update_status_application(statusAp: AnswerStatus,
                                     application=Depends(get_application),
                                     session: AsyncSession = Depends(get_async_session)):
     if application.status == "Pending":

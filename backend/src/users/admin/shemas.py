@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, field_validator, EmailStr, UUID4
 from datetime import date
-from src.users.shemas import ONLY_LETTERS_ONE_WORD, STRING, UserNameSurname
+from src.users.shemas import ONLY_LETTERS_ONE_WORD, STRING, UserProfileName, UserProfileLastName
 
 
 class ProfileUpdate(BaseModel):
@@ -32,7 +32,7 @@ class UserUpdate(BaseModel):
             raise ValueError("Дата не может быть больше сегодняшней")
         return v
 
-class UserProfileForAll(UserNameSurname):
+class UserProfileForAll(UserProfileName, UserProfileLastName):
     job_title: str | None = Field(None, pattern=STRING,
                                   example='string', max_length=100)
 
@@ -42,12 +42,12 @@ class UserProfileForAll(UserNameSurname):
         if value:
             return value.lower().title()
 
-class UserAll(BaseModel):
+class UserAllAdmin(BaseModel):
     uuid: UUID4
     email: EmailStr
     profile: UserProfileForAll
     create_at: date
 
-class GetAllUsers(BaseModel):
-    users: list[UserAll]
+class GetAllUsersAdmin(BaseModel):
+    users: list[UserAllAdmin]
     len: int

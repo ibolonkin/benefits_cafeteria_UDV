@@ -5,12 +5,14 @@ from ..base import Base
 from datetime import date, datetime
 import copy
 
+
 class UserImages(Base):
     __tablename__ = 'user_images'
 
     user_uuid: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('users.uuid'),
                                             primary_key=True, unique=True, index=True)
     data = mapped_column(LargeBinary)
+
 
 class UserCodes(Base):
     __tablename__ = 'user_codes'
@@ -43,7 +45,7 @@ class UsersORM(Base):
     adap_period: Mapped[bool] = mapped_column(nullable=False, server_default='False')
 
     is_verified: Mapped[bool] = mapped_column(server_default='False')
-    date_when_change_password: Mapped[date] = mapped_column(nullable=True, server_default=func.now())
+    date_change_password: Mapped[date] = mapped_column(nullable=True, server_default=func.now())
 
     userCodes: Mapped[UserCodes] = relationship(
         back_populates="user", lazy="select", uselist=False, cascade="all, delete"
@@ -76,6 +78,22 @@ class UsersORM(Base):
             if b.status == 'Denied' and (today - b.update_at).days <= 7:
                 return False
         return True
+
+    @property
+    def benefits_admin(self):
+        benefits = [copy.deepcopy(record.benefit) for record in self.applications]
+        benefitsApproved = [copy.deepcopy(record.benefit) for record in self.approved_benefits]
+
+        for i in range(len(benefitsApproved)):
+            benefitsApproved[i].status = 'Approved'
+
+        for i in range(len(benefits)):
+            benefits[i].status = self.applications[i].status
+            benefits[i].update_at = self.applications[i].status
+            benefits[i].create_at = self.applications[i].status
+
+        return benefits + benefitsApproved
+
 
     @property
     def benefits(self):
@@ -119,4 +137,3 @@ class UserProfilesORM(Base):
     job_title: Mapped[str] = mapped_column(nullable=True)
 
     user: Mapped["UsersORM"] = relationship(back_populates="profile", lazy="joined")
-

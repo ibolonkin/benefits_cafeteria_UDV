@@ -7,17 +7,16 @@ from src.base import get_async_session
 from src.utils import validate_file
 from src.config import settings
 from src.handler import get_user_uuid
-from src.users.admin.shemas import UserAll, UserUpdate
+from src.users.admin.shemas import UserUpdate, ProfileUpdate, UserAllAdmin
 from src.users.models import UserProfilesORM, UsersORM, UserImages
 
 
 async def get_user_benefits_uuid(user_uuid: str, session: AsyncSession = Depends(get_async_session)):
     try:
         query = select(UsersORM).where(user_uuid == UsersORM.uuid).options(selectinload(UsersORM.approved_benefits),
-                                                                           selectinload(UsersORM.history),
-                                                                           selectinload(UsersORM.applications), )
+                                                                           selectinload(UsersORM.applications))
         if user := (await session.execute(query)).scalar():
-            return user.benefits
+            return user.benefits_admin
         raise Exception
     except:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="NOT FOUND")
@@ -50,12 +49,12 @@ async def get_users_offset(start: int = Query(0, ge=0), offset: int = Query(5, g
     result = await session.execute(query)
     count = result.scalar()
 
-    return {'users': [UserAll.model_validate(u, from_attributes=True) for u in users], 'len': count}
+    return {'users': [UserAllAdmin.model_validate(u, from_attributes=True) for u in users], 'len': count}
 
 
 async def update_user_db(user_id: str, new_user: UserUpdate, session: AsyncSession = Depends(get_async_session)):
     profile = {}
-    if new_user.profile:
+    if isinstance(new_user.profile, ProfileUpdate):
         profile = new_user.profile.dict(exclude_unset=True)
         if hasattr(new_user, 'profile'):
             delattr(new_user, 'profile')
@@ -118,3 +117,4 @@ async def update_photo_user(user_uuid,
         session.add(image)
         await session.commit()
     return await get_user_uuid(user_uuid, session)
+

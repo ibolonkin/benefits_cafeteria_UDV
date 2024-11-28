@@ -25,6 +25,7 @@ class BenefitCreate(BaseModel):
     adap_period: bool = False
     duration_in_days: int | None = Field(None, ge=0)
     is_published: bool
+    price: int = Field(0, ge=0)
 
 
 class BenefitsUser(BaseModel):
@@ -48,8 +49,16 @@ class Benefit(BaseModel):
 
 class BenefitAdmin(Benefit):
     is_published: bool
+    price: int = Field(..., ge=0)
 
-class BenefitsAvailable(BenefitsUser):
+class BenefitsAv(BaseModel):
+    uuid: UUID4
+    name: str = Field(pattern=STRING, example='string', min_length=1, max_length=255)
+    ucoin: int = Field(0, ge=0)
+    main_photo: int | None = Field(..., ge=0)
+    category: Category | None
+
+class BenefitsAvailable(BenefitsAv):
     available: bool
 
 class BenefitAvailable(Benefit):

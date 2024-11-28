@@ -26,6 +26,7 @@ class BenefitsORM(Base):
     duration_in_days: Mapped[int] = mapped_column(nullable=True)
     adap_period: Mapped[bool] = mapped_column(nullable=False, server_default='True')
     is_published: Mapped[bool] = mapped_column(nullable=False, server_default='False')
+    price: Mapped[int] = mapped_column(nullable=False, server_default='0')
 
     category: Mapped["CategoryORM"] = relationship(back_populates="benefits", lazy="joined")
 
@@ -57,7 +58,8 @@ class ApplicationORM(Base):
     __tablename__ = 'application'
     id: Mapped[int] = mapped_column(primary_key=True)
     user_uuid: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('users.uuid'), nullable=False, index=True)
-    benefit_uuid: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('benefits.uuid'), nullable=False, index=True)
+    benefit_uuid: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('benefits.uuid'), nullable=False,
+                                               index=True)
     status: Mapped[str] = mapped_column(nullable=False, server_default="Pending")
 
     __table_args__ = (
@@ -68,15 +70,18 @@ class ApplicationORM(Base):
     user: Mapped["UsersORM"] = relationship(back_populates="applications", lazy="joined")
     benefit: Mapped["BenefitsORM"] = relationship(back_populates="applications", lazy="joined")
 
+
 class ApprovedBenefitsORM(Base):
     __tablename__ = 'approved_benefits'
     id: Mapped[int] = mapped_column(primary_key=True)
     user_uuid: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('users.uuid'), nullable=False, index=True)
-    benefit_uuid: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('benefits.uuid'), nullable=False, index=True)
+    benefit_uuid: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('benefits.uuid'), nullable=False,
+                                               index=True)
     end_date: Mapped[date] = mapped_column(nullable=True)
 
     user: Mapped["UsersORM"] = relationship(back_populates="approved_benefits", lazy="select")
     benefit: Mapped["BenefitsORM"] = relationship(back_populates="approved_benefits", lazy="joined")
+
 
 class HistoryBenefitsORM(Base):
     __tablename__ = 'history_benefits'

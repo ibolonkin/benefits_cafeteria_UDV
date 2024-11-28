@@ -118,3 +118,7 @@ async def update_photo_user(user_uuid,
         await session.commit()
     return await get_user_uuid(user_uuid, session)
 
+
+async def get_all(user=Depends(get_user_uuid), session=Depends(get_async_session)):
+    await session.refresh(user, attribute_names=['applications', 'approved_benefits'])
+    return user

@@ -15,6 +15,7 @@ class BenefitUpdate(BaseModel):
     adap_period: bool | None = Field(None)
     duration_in_days: int | None = Field(None, ge=0)
     is_published: bool | None = Field(None)
+    price: int | None = Field(0, ge=0)
 
 
 class UpdateCategory(BaseModel):
@@ -28,6 +29,7 @@ class BenefitsAdmin(BaseModel):
     name: str = Field(pattern=STRING, example='string', min_length=1, max_length=255)
     category: Category | None
     experience_month: int = Field(0, ge=0)
+    is_published: bool
 
 
 class BenefitsAdminResponse(BaseModel):

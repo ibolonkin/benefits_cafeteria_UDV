@@ -9,17 +9,20 @@ from .shemas import BenefitUpdate, UpdateCategory, CategoryCreate, AnswerStatus
 from src.benefits.handler import get_benefit, get_category
 from src.benefits.models import ApplicationORM, CategoryORM, BenefitsORM, Image, HistoryBenefitsORM, ApprovedBenefitsORM
 from src.handler import get_user_uuid
-from src.benefits.shemas import  BenefitCreate, CategoryAdmin, BenefitAdmin
+from src.benefits.shemas import BenefitCreate, CategoryAdmin, BenefitAdmin
 
 #  Плохо что использую это тут наверно надо как то по другому придумать
-from ...users.models import UserProfilesORM, UsersORM
-from ...utils import validate_file
+from src.users.models import UserProfilesORM, UsersORM
+from src.utils import validate_file
+from src.statistics.handler import create_history_user, create_history_benefit
 
 
 def create_in_db(orm_cls, validate_cls, cls_accept):
     async def create_model_db(model: cls_accept, session=Depends(get_async_session)):
         try:
             model_orm = orm_cls(**model.dict())
+            if orm_cls == BenefitsORM:
+                await create_history_benefit(model_orm, 'Create', session=session)
             session.add(model_orm)
             await session.flush()
             await session.refresh(model_orm)
@@ -37,8 +40,6 @@ create_category_db = create_in_db(CategoryORM, CategoryAdmin, CategoryCreate)
 create_benefit_db = create_in_db(BenefitsORM, BenefitAdmin, BenefitCreate)
 
 
-#  TODO: Добавить 3 таблицы во внутрь так что бы эта функция существовала,
-#   а так это чисто админская функция что бы добавить кому угодно в любой момент льготу
 async def update_application_db(new_status: AnswerStatus, user=Depends(get_user_uuid),
                                 benefit=Depends(get_benefit), session=Depends(get_async_session)):
     if not new_status.status:
@@ -129,15 +130,19 @@ def add_photo_create(foo_get_orm, name_obj):
                             session=Depends(get_async_session)):
         if name_obj == "category":
             att = obj.photo
+            obj.photo = None
         else:
             att = obj.main_photo
-        if att:
-            image_old = await session.get(Image, att)
-            await session.delete(image_old)
+            obj.photo = None
+
         if name_obj == "category":
             obj.photo = image.id
         else:
             obj.main_photo = image.id
+
+        if att:
+            image_old = await session.get(Image, att)
+            await session.delete(image_old)
         await session.commit()
         return obj
 
@@ -168,6 +173,7 @@ def delete_photo_create(foo_get_orm, name_obj):
         else:
             att = obj.main_photo
             obj.main_photo = None
+        await session.flush()
         if att:
             await delete_photo(att, session=session)
         else:
@@ -185,7 +191,7 @@ delete_photo_benefit = delete_photo_create(get_benefit, 'benefit')
 delete_photo_category = delete_photo_create(get_category, 'category')
 
 
-async def delete_category(category_id: int, session: AsyncSession = Depends(get_async_session)):
+async def delete_category(category_id:int, session: AsyncSession = Depends(get_async_session)):
     try:
         update(BenefitsORM).filter(category_id == BenefitsORM.category_id).values(**{'category_id': None})
         await session.flush()
@@ -206,9 +212,8 @@ async def update_benefit_db(uuid_orm: str, benefit_inf: BenefitUpdate,
             stmt = update(BenefitsORM).where(uuid_orm == BenefitsORM.uuid).values(
                 **benefit_inf.dict(exclude_unset=True))
             await session.execute(stmt)
-        except Exception as e:
-            print(e)
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="conflict")
+        except:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,)
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Empty")
     await session.commit()
@@ -228,7 +233,7 @@ async def update_category_db(
             if res.rowcount == 0:
                 raise
         except:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="conflict")
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, )
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Empty")
     await session.commit()
@@ -295,16 +300,6 @@ async def get_application(application_id: int = Path(..., ge=0), session=Depends
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
 
-# async def get_application_pending(application_id: int, session=Depends(get_async_session)):
-#     try:
-#         query = select(ApplicationORM).where(
-#             and_(application_id == ApplicationORM.id, ApplicationORM.status == 'Pending'))
-#         res = (await session.execute(query)).scalar()
-#         return res
-#     except Exception as e:
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-
-
 async def update_status_application(statusAp: AnswerStatus,
                                     application=Depends(get_application),
                                     session: AsyncSession = Depends(get_async_session)):
@@ -315,6 +310,8 @@ async def update_status_application(statusAp: AnswerStatus,
             obj = HistoryBenefitsORM(user_uuid=user.uuid, benefit_uuid=application.benefit.uuid, status='Denied',
                                      msg=statusAp.msg)
             session.add(obj)
+            await create_history_user(benefit=application.benefit, user=application.user, status='Denied',
+                                      session=session)
         else:
             if application.benefit.duration_in_days:
                 end_date = date.today() + timedelta(application.benefit.duration_in_days)
@@ -323,6 +320,8 @@ async def update_status_application(statusAp: AnswerStatus,
 
             obj = ApprovedBenefitsORM(user_uuid=user.uuid, benefit_uuid=application.benefit.uuid, end_date=end_date)
             session.add(obj)
+            await create_history_user(benefit=application.benefit, user=application.user, status='Approved',
+                                      session=session)
         await session.delete(application)
 
         await session.commit()
@@ -334,5 +333,6 @@ async def update_status_application(statusAp: AnswerStatus,
 
 async def delete_benefit_db(benefit=Depends(get_benefit), session=Depends(get_async_session)):
     await session.delete(benefit)
+    await create_history_benefit(benefit, 'Delete', session=session)
     await session.commit()
     return {'detail': 'ok'}

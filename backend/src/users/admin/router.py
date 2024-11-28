@@ -7,7 +7,7 @@ from src.benefits.shemas import BenefitsUser
 from src.handler import get_user_uuid
 from src.users.admin.handler import (get_users_offset, update_user_db,
                                      get_user_benefits_uuid, get_user_photo_admin,
-                                     delete_photo_user, update_photo_user)
+                                     delete_photo_user, update_photo_user, get_all)
 from src.users.admin.shemas import GetAllUsersAdmin
 from src.users.shemas import UserAdmin
 from src.utils import get_superUser_payload
@@ -53,5 +53,9 @@ async def read_all_users(obj=Depends(get_users_offset)) -> GetAllUsersAdmin:
 async def update_user(user=Depends(update_user_db)) -> UserAdmin:
     return UserAdmin.model_validate(user, from_attributes=True)
 
+
 # @router.patch('/{user_uuid}/benefits/{uuid_orm}/')
 # async def
+@router.get('/{user_uuid}/benefit/1')
+async def get(user=Depends(get_all)):
+    return user.benefits_admin

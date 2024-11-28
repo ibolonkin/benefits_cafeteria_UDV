@@ -38,7 +38,7 @@ async def add_photo_category(category=Depends(add_photo_category)) -> CategoryAd
     return category
 
 
-@routerBenefits.delete('/categories/{uuid_orm}/delete', dependencies=[Depends(delete_category)])
+@routerBenefits.delete('/categories/{category_id}/delete', dependencies=[Depends(delete_category)])
 async def delete_category():
     pass
 

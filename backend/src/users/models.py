@@ -64,20 +64,27 @@ class UsersORM(Base):
         back_populates="user", cascade="all, delete", lazy="select"
     )
 
-    def can_application(self, benefit_uuid_get):
-        if benefit_uuid_get in [b.benefit_uuid for b in self.approved_benefits]:
-            return False
-        if benefit_uuid_get in [b.benefit_uuid for b in self.applications]:
-            return False
-        history_benefit_uuid = sorted([b for b in self.history if b.benefit_uuid == benefit_uuid_get],
+    def can_application(self, benefit_uuid_get, approved_benefits=None, applications=None, history=None):
+        if approved_benefits is None:
+            approved_benefits = self.approved_benefits
+        if applications is None:
+            applications = self.applications
+        if history is None:
+            history = self.history
+
+        if benefit_uuid_get in [b.benefit_uuid for b in approved_benefits]:
+            return False, 0
+        if benefit_uuid_get in [b.benefit_uuid for b in applications]:
+            return False, 0
+        history_benefit_uuid = sorted([b for b in history if b.benefit_uuid == benefit_uuid_get],
                                       key=lambda x: x.update_at, reverse=True)
         today = date.today()
         for b in history_benefit_uuid:
             if b.status == 'Terminated':
                 continue
             if b.status == 'Denied' and (today - b.update_at).days <= 7:
-                return False
-        return True
+                return False, 7 - (today - b.update_at).days
+        return True, 0
 
     @property
     def benefits_admin(self):
@@ -93,7 +100,6 @@ class UsersORM(Base):
             benefits[i].create_at = self.applications[i].status
 
         return benefits + benefitsApproved
-
 
     @property
     def benefits(self):
@@ -116,11 +122,15 @@ class UsersORM(Base):
         for i in range(len(benefitsApproved)):
             benefitsApproved[i].status = 'Approved'
             benefitsApproved[i].msg = None
+            if self.approved_benefits[i].end_date:
+                benefitsApproved[i].end_date = self.approved_benefits[i].end_date
+            else:
+                benefitsApproved[i].end_date = None
 
         for i in range(len(benefits)):
             benefits[i].status = self.applications[i].status
-            benefits[i].update_at = self.applications[i].status
-            benefits[i].create_at = self.applications[i].status
+            benefits[i].update_at = self.applications[i].update_at
+            benefits[i].create_at = self.applications[i].create_at
             benefits[i].msg = None
 
         return sorted(benefits + benefitsApproved + benefitHistory, key=lambda x: key_dict[x.status])

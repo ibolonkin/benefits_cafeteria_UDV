@@ -5,13 +5,14 @@ from io import BytesIO
 from src.benefits.handler import get_categories, get_image
 from src.benefits.shemas import BenefitAvailable, Category, BenefitsAvailable, Application
 from src.benefits.user.handler import get_all_benefit, choice_benefit_db, get_benefit_available
-from src.utils import get_active_payload
+from src.utils import get_verify_payload
 
-router = APIRouter(dependencies=[Depends(get_active_payload)])
+router = APIRouter(dependencies=[Depends(get_verify_payload)])
 
 @router.get('/images/{uuid_orm}/')
 async def get_image(image=Depends(get_image)) -> StreamingResponse:
-    return StreamingResponse(BytesIO(image.data), media_type="image/jpeg")
+
+    return StreamingResponse(BytesIO(image), media_type="image/jpeg")
 
 @router.get('/benefits/')
 async def get_all_benefits(benefits=Depends(get_all_benefit)) -> list[BenefitsAvailable]:

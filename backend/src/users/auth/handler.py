@@ -1,7 +1,8 @@
 import hashlib
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import random
 from email.message import EmailMessage
+
 
 import aiosmtplib
 from pydantic import BaseModel
@@ -12,9 +13,9 @@ from fastapi import Depends, HTTPException, status, BackgroundTasks
 from src.config import settings
 from src.base import get_async_session
 from src.handler import get_user_uuid
-from src.users.auth.shemas import UserRegister, UserAuthorization
+from src.users.auth.shemas import UserRegister, UserAuthorization, NewPassword
 from src.users.models import UsersORM, UserProfilesORM, UserCodes
-from src.utils import get_active_payload
+from src.utils import get_verify_payload, get_active_payload
 
 
 async def check_conflict_user(userData, session):
@@ -110,8 +111,10 @@ async def send_mail_again(background_tasks: BackgroundTasks,
 
     return {'details': 'ok'}
 
+
 class VerifyCode(BaseModel):
     user_code: str
+
 
 async def verify_mail_db(verifyCode: VerifyCode,
                          user=Depends(get_active_payload),
@@ -129,3 +132,19 @@ async def verify_mail_db(verifyCode: VerifyCode,
         return user_inf
 
     raise HTTPException(status_code=400, detail='verification code expired')
+
+
+async def update_password(password_obj: NewPassword, user=Depends(get_active_payload),
+                          session=Depends(get_async_session)):
+    userOrm = await get_user_uuid(user.uuid, session)
+    enter_hash_password = hashlib.sha256(password_obj.old_password.encode('utf-8')).hexdigest()
+
+    if enter_hash_password != userOrm.hash_password:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='password wrong')
+
+    hash_password = hashlib.sha256(password_obj.new_password.encode('utf-8')).hexdigest()
+
+    userOrm.hash_password = hash_password
+    userOrm.date_change_password = date.today()
+    await session.commit()
+    return

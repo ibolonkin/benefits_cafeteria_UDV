@@ -60,6 +60,7 @@ class BenefitsAv(BaseModel):
 
 class BenefitsAvailable(BenefitsAv):
     available: bool
+    status: str | None
 
 class BenefitAvailable(Benefit):
     available: bool

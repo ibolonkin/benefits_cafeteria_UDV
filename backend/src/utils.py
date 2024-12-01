@@ -21,6 +21,7 @@ class UserInfo(BaseModel):
     uuid: UUID4
     active: bool
     super_user: bool
+    is_verified: bool
 
     def get(self, att: str):
         if hasattr(self, att):
@@ -60,6 +61,7 @@ def create_access_token(user_inf) -> str:
         'sub': str(user_inf.uuid),
         'active': user_inf.active,
         'super_user': user_inf.super_user,
+        'is_verified': user_inf.is_verified
     }
     return create_jwt(token_type=ACCESS_TOKEN_TYPE,
                       token_data=jwt_payload,
@@ -131,14 +133,18 @@ async def get_payload_refresh(request: Request):
     payload = decode_jwt_token(token, REFRESH_TOKEN_TYPE)
     return payload
 
-
 async def get_active_payload(userInf=Depends(get_payload_access)) -> UserInfo:
     if userInf.active:
         return userInf
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='User not active')
 
+async def get_verify_payload(userInf=Depends(get_active_payload)) -> UserInfo:
+    if userInf.is_verified:
+        return userInf
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='User not verified')
 
-async def get_superUser_payload(userInf=Depends(get_active_payload)) -> UserInfo:
+
+async def get_superUser_payload(userInf=Depends(get_verify_payload)) -> UserInfo:
     if userInf.super_user:
         return userInf
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='FORBIDDEN')

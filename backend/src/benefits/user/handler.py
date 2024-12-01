@@ -39,7 +39,7 @@ async def choice_benefit_db(userOrm=Depends(get_active_user),
         uCoin = False
 
     await session.refresh(userOrm, attribute_names=['applications', 'approved_benefits', 'history'])
-    flag, days = userOrm.can_application(benefit.uuid)
+    flag, days, _ = userOrm.can_application(benefit.uuid)
     if not flag:
         if days:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
@@ -91,15 +91,20 @@ async def get_all_benefit(
     experience_month = difference.years * 12 + difference.months
 
     for b in benefits:
+        can_app, _, status_app = userOrm.can_application(b.uuid, approvedBenefits, applicationBenefits, historyBenefits)
         if (b.experience_month > experience_month
                 or userOrm.adap_period < b.adap_period
                 or b.ucoin > userOrm.ucoin):
             b.available = False
+            b.status = status_app
         else:
-            if userOrm.can_application(b.uuid, approvedBenefits, applicationBenefits, historyBenefits)[0]:
+            if can_app:
                 b.available = True
+                b.status = status_app
             else:
                 b.available = False
+                b.status = status_app
+
     benefits_res = [
     ]
     for b in benefits:
@@ -110,7 +115,7 @@ async def get_all_benefit(
             else:
                 benefits_res.append(b)
 
-    return benefits_res
+    return sorted(benefits_res, key=lambda x: x.available, reverse=True)
 
 
 async def get_benefit_available(benefit=Depends(get_benefit), userOrm=Depends(get_active_user),

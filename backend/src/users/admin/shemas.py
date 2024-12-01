@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field, field_validator, EmailStr, UUID4
 from datetime import date
+from typing import Literal
 from src.users.shemas import ONLY_LETTERS_ONE_WORD, STRING, UserProfileName, UserProfileLastName
 
 
@@ -51,3 +52,7 @@ class UserAllAdmin(BaseModel):
 class GetAllUsersAdmin(BaseModel):
     users: list[UserAllAdmin]
     len: int
+
+class StatusApp(BaseModel):
+    status: Literal['Approved', 'Denied']
+    msg: str | None = None

@@ -2,7 +2,7 @@ from datetime import date
 from pydantic import BaseModel, Field, UUID4
 from typing import Literal
 
-from src.benefits.shemas import STRING, Category, Benefit
+from src.benefits.shemas import STRING, Category, Benefit, CategoryAdmin
 from src.users.shemas import UserApplication, User
 
 
@@ -27,7 +27,7 @@ class BenefitsAdmin(BaseModel):
     uuid: UUID4
     main_photo: int | None = Field(..., ge=0)
     name: str = Field(pattern=STRING, example='string', min_length=1, max_length=255)
-    category: Category | None
+    category: CategoryAdmin | None
     experience_month: int = Field(0, ge=0)
     is_published: bool
 

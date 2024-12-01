@@ -23,14 +23,23 @@ def create_in_db(orm_cls, validate_cls, cls_accept):
             model_orm = orm_cls(**model.dict())
             if orm_cls == BenefitsORM:
                 await create_history_benefit(model_orm, 'Create', session=session)
+            else:
+                query = select(func.count()).select_from(CategoryORM).where(CategoryORM.is_published)
+                count = (await session.execute(query)).scalar()
+
+                if count >= 6:
+                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                        detail="Уже существует 6 опубликованных льгот,"
+                                               " невозможно добавление больше")
             session.add(model_orm)
             await session.flush()
             await session.refresh(model_orm)
             model_new = validate_cls.model_validate(model_orm, from_attributes=True)
             await session.commit()
             return model_new
-        except:
-
+        except HTTPException as exc:
+            raise exc
+        except Exception as e:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
 
     return create_model_db
@@ -225,6 +234,16 @@ async def update_category_db(
         category: UpdateCategory,
         category_id: int = Path(..., ge=0),
         session: AsyncSession = Depends(get_async_session)):
+    if hasattr(category, 'is_published') and category.is_published:
+
+        query = select(func.count()).select_from(CategoryORM).where(CategoryORM.is_published,
+                                                                    category_id != CategoryORM.id)
+        count = (await session.execute(query)).scalar()
+
+        if count >= 6:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Уже существует 6 опубликованных льгот,"
+                                                                                " невозможно добавление больше")
+
     if category.dict(exclude_unset=True):
         try:
             stmt = update(CategoryORM).where(category_id == CategoryORM.id).values(

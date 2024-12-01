@@ -7,8 +7,8 @@ from src.benefits.shemas import BenefitsUser
 from src.handler import get_user_uuid
 from src.users.admin.handler import (get_users_offset, update_user_db,
                                      get_user_benefits_uuid, get_user_photo_admin,
-                                     delete_photo_user, update_photo_user, get_all)
-from src.users.admin.shemas import GetAllUsersAdmin
+                                     delete_photo_user, update_photo_user, update_status_benefit_app, search_users)
+from src.users.admin.shemas import GetAllUsersAdmin, UserAllAdmin
 from src.users.shemas import UserAdmin
 from src.utils import get_superUser_payload
 
@@ -56,6 +56,12 @@ async def update_user(user=Depends(update_user_db)) -> UserAdmin:
 
 # @router.patch('/{user_uuid}/benefits/{uuid_orm}/')
 # async def
-@router.get('/{user_uuid}/benefit/1')
-async def get(user=Depends(get_all)):
-    return user.benefits_admin
+@router.patch('/{user_uuid}/benefits/{benefit_uuid}/')
+async def update_status_benefit_admin(app=Depends(update_status_benefit_app)):
+    return app
+    pass
+
+
+@router.get('/search')
+async def search_users(users=Depends(search_users)) -> list[UserAllAdmin]:
+    return users

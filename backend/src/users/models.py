@@ -73,9 +73,9 @@ class UsersORM(Base):
             history = self.history
 
         if benefit_uuid_get in [b.benefit_uuid for b in approved_benefits]:
-            return False, 0
+            return False, 0, 'Approved'
         if benefit_uuid_get in [b.benefit_uuid for b in applications]:
-            return False, 0
+            return False, 0, "Pending"
         history_benefit_uuid = sorted([b for b in history if b.benefit_uuid == benefit_uuid_get],
                                       key=lambda x: x.update_at, reverse=True)
         today = date.today()
@@ -83,8 +83,8 @@ class UsersORM(Base):
             if b.status == 'Terminated':
                 continue
             if b.status == 'Denied' and (today - b.update_at).days <= 7:
-                return False, 7 - (today - b.update_at).days
-        return True, 0
+                return False, 7 - (today - b.update_at).days,None
+        return True, 0,None
 
     @property
     def benefits_admin(self):
@@ -100,6 +100,9 @@ class UsersORM(Base):
             benefits[i].create_at = self.applications[i].status
 
         return benefits + benefitsApproved
+    @property
+    def app_admin(self):
+        return self.applications + self.approved_benefits
 
     @property
     def benefits(self):

@@ -2,7 +2,7 @@ from fastapi import APIRouter, status, Response, Depends, Request, HTTPException
 
 from src.config import settings
 from src.handler import refresh_get_user
-from src.users.auth.handler import register_user_db, find_auth_user, send_mail_again, verify_mail_db
+from src.users.auth.handler import register_user_db, find_auth_user, send_mail_again, verify_mail_db, update_password
 
 from src.utils import Token, create_tokens
 
@@ -43,3 +43,7 @@ async def send_verify_code(msg=Depends(send_mail_again)):
 @router.post('/verify_mail')
 async def verify_mail(response: Response, user_inf=Depends(verify_mail_db)) -> Token:
     return create_tokens(user_inf, response)
+
+@router.post('/change_password')
+async def change_password(user_inf=Depends(update_password)):
+    return {'detail':'ok'}

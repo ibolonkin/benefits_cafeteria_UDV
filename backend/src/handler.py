@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.base import get_async_session
 from src.users.models import UsersORM
-from src.utils import get_payload_refresh, get_active_payload
+from src.utils import get_payload_refresh, get_verify_payload
 
 
 async def get_user_uuid(user_uuid: str, session: AsyncSession = Depends(get_async_session)) -> UsersORM | None:
@@ -30,4 +30,4 @@ def get_user_token_sub_creator(
 
 
 refresh_get_user = get_user_token_sub_creator(get_payload_refresh)
-get_active_user = get_user_token_sub_creator(get_active_payload)
+get_active_user = get_user_token_sub_creator(get_verify_payload)

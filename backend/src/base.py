@@ -17,11 +17,6 @@ async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
 class Base(DeclarativeBase):
     create_at = mapped_column(Date, server_default=func.now())
     update_at = mapped_column(Date, server_default=func.now(), server_onupdate=func.now())
-    # create_at: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('utc',now())"))
-    # upgrade_at: Mapped[datetime] = mapped_column(
-    #     server_default=text("TIMEZONE('utc',now())"),
-    #     onupdate=text("TIMEZONE('utc',now())")
-    # )
     delete_at: Mapped[datetime] = mapped_column(nullable=True)
 
     def __repr__(self) -> str:

@@ -1,3 +1,4 @@
+import redis.asyncio as redis
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from fastapi import FastAPI
@@ -12,6 +13,7 @@ from src.benefits.router import router as benefits_router
 
 app = FastAPI()
 scheduler = AsyncIOScheduler()
+# redis = redis.Redis(host='localhost', port=6379, decode_responses=True)
 
 origins = [
     "http://26.25.133.178:3000",
@@ -33,12 +35,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# @app.on_event("startup")
-# async def startup(startup=Depends(create_super_user)):
-#     startup = None
-#     pass
-
 @scheduler.scheduled_job(CronTrigger(hour=0, minute=1))
 async def scheduled_task():
     async with async_session_maker() as session:
@@ -57,6 +53,7 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_event():
     scheduler.shutdown()
+    # await redis.close()
 
 @app.get('/')
 async def root():

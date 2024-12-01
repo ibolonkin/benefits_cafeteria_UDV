@@ -7,6 +7,7 @@ from alembic import context
 
 from src.config import settings
 from src.benefits.models import ApplicationORM
+from src.statistics.models import *
 from src.users.models import UsersORM
 from src.base import Base
 # this is the Alembic Config object, which provides

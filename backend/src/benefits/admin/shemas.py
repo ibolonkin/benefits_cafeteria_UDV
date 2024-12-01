@@ -1,11 +1,9 @@
 from datetime import date
+from pydantic import BaseModel, Field, UUID4
 from typing import Literal
 
-from pydantic import BaseModel, Field, UUID4
-
-from src.benefits.shemas import STRING, Category
-from src.users.admin.shemas import UserAll
-from src.users.shemas import User
+from src.benefits.shemas import STRING, Category, Benefit, CategoryAdmin
+from src.users.shemas import UserApplication, User
 
 
 class BenefitUpdate(BaseModel):
@@ -17,6 +15,8 @@ class BenefitUpdate(BaseModel):
     adap_period: bool | None = Field(None)
     duration_in_days: int | None = Field(None, ge=0)
     is_published: bool | None = Field(None)
+    price: int | None = Field(0, ge=0)
+
 
 class UpdateCategory(BaseModel):
     name: str | None = Field(None, pattern=STRING, min_length=3, max_length=255, example='string')
@@ -27,47 +27,57 @@ class BenefitsAdmin(BaseModel):
     uuid: UUID4
     main_photo: int | None = Field(..., ge=0)
     name: str = Field(pattern=STRING, example='string', min_length=1, max_length=255)
-    category: Category | None
+    category: CategoryAdmin | None
     experience_month: int = Field(0, ge=0)
+    is_published: bool
 
-class ResponseBenefitsAdmin(BaseModel):
+
+class BenefitsAdminResponse(BaseModel):
     benefits: list[BenefitsAdmin]
     len: int = Field(..., ge=0)
 
 
-class BenefitApplication(BaseModel):
+class BenefitInApplications(BaseModel):
     name: str
-    category: Category
+    category: Category | None
 
-class ApplicationStatus(BaseModel):
-    status: Literal["Denied", "Approved"]
-
-class AnswerStatus(BaseModel):
-    status: Literal["Denied", "Approved", "Pending"] | None
 
 class Application(BaseModel):
     id: int
-    user: UserAll
-    benefit: BenefitApplication
+    user: UserApplication
+    benefit: BenefitInApplications
     create_at: date
+    status: str
+    msg: str | None = None
 
-class BenefitApp(BenefitApplication):
+
+class ApplicationGet(Application):
+    user: User
+    benefit: Benefit
+    status: str = "Approved"
+
+
+class BenefitInApplication(BenefitInApplications):
     uuid: UUID4
-    category: Category | None
     experience_month: int = Field(0, ge=0)
     adap_period: bool = False
     ucoin: int = Field(0, ge=0)
 
 
-class UserBenefitPending(BaseModel):
-    id: int
-    user: User
-    benefit: BenefitApp
-    create_at: date
-
-class UserBenefit(UserBenefitPending, AnswerStatus):
-    update_at: date
-
-class ApplicationAll(BaseModel):
+class Applications(BaseModel):
     applications: list[Application]
+    len: int
+
+
+class CategoryCreate(BaseModel):
+    name: str = Field(pattern=STRING, min_length=1, example='string')
+    is_published: bool
+
+
+class AnswerStatus(BaseModel):
+    status: Literal['Approved', 'Denied']
+    msg: str | None = None
+
+class BenefitsAdminAll(BaseModel):
+    benefits: list[BenefitsAdmin]
     len: int

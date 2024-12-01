@@ -28,6 +28,7 @@ async def process_expired_benefits(session: AsyncSession):
 async def create_super_user(session: AsyncSession):
     query = select(UsersORM).where(settings.email == UsersORM.email)
     user = (await session.execute(query)).scalar()
+
     if not user:
         hash_password = hashlib.sha256(settings.password.encode('utf-8')).hexdigest()
         user = UsersORM(email=settings.email, hash_password=hash_password)
@@ -42,5 +43,6 @@ async def create_super_user(session: AsyncSession):
 
     user.super_user = True
     user.ucoin = 9999
+    user.active = True
 
     await session.commit()

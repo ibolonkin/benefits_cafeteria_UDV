@@ -1,41 +1,54 @@
 from datetime import date, timedelta
 
-from fastapi import Depends, HTTPException, status, Query, UploadFile, File, Path
+from fastapi import Depends, HTTPException, status, Query, Path
 from sqlalchemy import select, and_, func, update, asc, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.base import get_async_session
-from .shemas import AnswerStatus, ApplicationStatus, BenefitUpdate, UpdateCategory
+from .shemas import BenefitUpdate, UpdateCategory, CategoryCreate, AnswerStatus
 from src.benefits.handler import get_benefit, get_category
 from src.benefits.models import ApplicationORM, CategoryORM, BenefitsORM, Image, HistoryBenefitsORM, ApprovedBenefitsORM
 from src.handler import get_user_uuid
-from src.benefits.shemas import Category, Benefit, BenefitCreate, CategoryCreate
+from src.benefits.shemas import BenefitCreate, CategoryAdmin, BenefitAdmin
 
 #  Плохо что использую это тут наверно надо как то по другому придумать
-from ...users.models import UserProfilesORM, UsersORM
+from src.users.models import UserProfilesORM, UsersORM
+from src.utils import validate_file
+from src.statistics.handler import create_history_user, create_history_benefit
 
 
 def create_in_db(orm_cls, validate_cls, cls_accept):
     async def create_model_db(model: cls_accept, session=Depends(get_async_session)):
         try:
             model_orm = orm_cls(**model.dict())
+            if orm_cls == BenefitsORM:
+                await create_history_benefit(model_orm, 'Create', session=session)
+            else:
+                query = select(func.count()).select_from(CategoryORM).where(CategoryORM.is_published)
+                count = (await session.execute(query)).scalar()
+
+                if count >= 6:
+                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                        detail="Уже существует 6 опубликованных льгот,"
+                                               " невозможно добавление больше")
             session.add(model_orm)
             await session.flush()
+            await session.refresh(model_orm)
             model_new = validate_cls.model_validate(model_orm, from_attributes=True)
             await session.commit()
             return model_new
-        except:
+        except HTTPException as exc:
+            raise exc
+        except Exception as e:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
 
     return create_model_db
 
 
-create_category_db = create_in_db(CategoryORM, Category, CategoryCreate)
-create_benefit_db = create_in_db(BenefitsORM, Benefit, BenefitCreate)
+create_category_db = create_in_db(CategoryORM, CategoryAdmin, CategoryCreate)
+create_benefit_db = create_in_db(BenefitsORM, BenefitAdmin, BenefitCreate)
 
 
-#  TODO: Добавить 3 таблицы во внутрь так что бы эта функция существовала,
-#   а так это чисто админская функция что бы добавить кому угодно в любой момент льготу
 async def update_application_db(new_status: AnswerStatus, user=Depends(get_user_uuid),
                                 benefit=Depends(get_benefit), session=Depends(get_async_session)):
     if not new_status.status:
@@ -71,8 +84,33 @@ async def update_application_db(new_status: AnswerStatus, user=Depends(get_user_
 
 
 async def get_all_benefit_admin(start: int = Query(0, ge=0), offset: int = Query(5, ge=1, le=20),
+                                order_by: str = Query('is_published'),
+                                sort_order: str = Query("asc"),
                                 session: AsyncSession = Depends(get_async_session)):
-    query = select(BenefitsORM).order_by(BenefitsORM.name)
+    query = select(BenefitsORM)
+
+    if ((order_by and order_by not in {'is_published', 'name', 'category', "experience_month"}) or
+            (sort_order and sort_order not in {"asc", "desc"})):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+
+    match order_by:
+        case "is_published":
+            order = BenefitsORM.is_published
+        case 'name':
+            order = BenefitsORM.name
+        case "experience_month":
+            order = BenefitsORM.experience_month
+
+        case 'category':
+            order = CategoryORM.name
+            query = (query
+                     .outerjoin(CategoryORM, CategoryORM.id == BenefitsORM.category_id))
+        case _:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+    if sort_order == 'asc':
+        query = query.order_by(asc(order))
+    else:
+        query = query.order_by(desc(order))
 
     if start and offset:
         query = query.slice(start, start + offset)
@@ -88,12 +126,6 @@ async def get_all_benefit_admin(start: int = Query(0, ge=0), offset: int = Query
     return {'benefits': benefits, 'len': count}
 
 
-async def validate_file(photo: UploadFile = File(..., media_type='image')):
-    if not photo.content_type.startswith('image/'):
-        raise HTTPException(status_code=400, detail="File type not supported. Please upload images.")
-    return await photo.read()
-
-
 async def add_photo(photo=Depends(validate_file), session=Depends(get_async_session)):
     image = Image(data=photo)
     session.add(image)
@@ -101,26 +133,74 @@ async def add_photo(photo=Depends(validate_file), session=Depends(get_async_sess
     return image
 
 
-def add_photo_create(foo_get_orm, name_att):
+def add_photo_create(foo_get_orm, name_obj):
     async def add_photo_orm(obj=Depends(foo_get_orm),
                             image=Depends(add_photo),
                             session=Depends(get_async_session)):
-        att = getattr(obj, name_att)
+        if name_obj == "category":
+            att = obj.photo
+            obj.photo = None
+        else:
+            att = obj.main_photo
+            obj.photo = None
+
+        if name_obj == "category":
+            obj.photo = image.id
+        else:
+            obj.main_photo = image.id
+
         if att:
             image_old = await session.get(Image, att)
             await session.delete(image_old)
-        att = image.id
         await session.commit()
         return obj
 
     return add_photo_orm
 
 
-add_photo_benefit = add_photo_create(get_benefit, 'main_photo')
-add_photo_category = add_photo_create(get_benefit, 'photo')
+async def delete_photo(idx: int, session: AsyncSession = Depends(get_async_session)):
+    try:
+
+        image = await session.get(Image, idx)
+
+        if image:
+            await session.delete(image)
+            await session.commit()
+            return
+        raise
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='not photo')
 
 
-async def delete_category(category_id: int, session: AsyncSession = Depends(get_async_session)):
+def delete_photo_create(foo_get_orm, name_obj):
+    async def delete_photo_orm(obj=Depends(foo_get_orm),
+                               session=Depends(get_async_session)):
+        if name_obj == "category":
+            att = obj.photo
+            obj.photo = None
+        else:
+            att = obj.main_photo
+            obj.main_photo = None
+        await session.flush()
+        if att:
+            await delete_photo(att, session=session)
+        else:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='not photo')
+        await session.refresh(obj)
+        return obj
+
+    return delete_photo_orm
+
+
+add_photo_benefit = add_photo_create(get_benefit, 'benefit')
+add_photo_category = add_photo_create(get_category, 'category')
+
+delete_photo_benefit = delete_photo_create(get_benefit, 'benefit')
+delete_photo_category = delete_photo_create(get_category, 'category')
+
+
+async def delete_category(category_id:int, session: AsyncSession = Depends(get_async_session)):
     try:
         update(BenefitsORM).filter(category_id == BenefitsORM.category_id).values(**{'category_id': None})
         await session.flush()
@@ -141,9 +221,8 @@ async def update_benefit_db(uuid_orm: str, benefit_inf: BenefitUpdate,
             stmt = update(BenefitsORM).where(uuid_orm == BenefitsORM.uuid).values(
                 **benefit_inf.dict(exclude_unset=True))
             await session.execute(stmt)
-        except Exception as e:
-            print(e)
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="conflict")
+        except:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,)
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Empty")
     await session.commit()
@@ -155,6 +234,16 @@ async def update_category_db(
         category: UpdateCategory,
         category_id: int = Path(..., ge=0),
         session: AsyncSession = Depends(get_async_session)):
+    if hasattr(category, 'is_published') and category.is_published:
+
+        query = select(func.count()).select_from(CategoryORM).where(CategoryORM.is_published,
+                                                                    category_id != CategoryORM.id)
+        count = (await session.execute(query)).scalar()
+
+        if count >= 6:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Уже существует 6 опубликованных льгот,"
+                                                                                " невозможно добавление больше")
+
     if category.dict(exclude_unset=True):
         try:
             stmt = update(CategoryORM).where(category_id == CategoryORM.id).values(
@@ -163,7 +252,7 @@ async def update_category_db(
             if res.rowcount == 0:
                 raise
         except:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="conflict")
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, )
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Empty")
     await session.commit()
@@ -230,25 +319,18 @@ async def get_application(application_id: int = Path(..., ge=0), session=Depends
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
 
-# async def get_application_pending(application_id: int, session=Depends(get_async_session)):
-#     try:
-#         query = select(ApplicationORM).where(
-#             and_(application_id == ApplicationORM.id, ApplicationORM.status == 'Pending'))
-#         res = (await session.execute(query)).scalar()
-#         return res
-#     except Exception as e:
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-
-
-async def update_status_application(statusAp: ApplicationStatus,
+async def update_status_application(statusAp: AnswerStatus,
                                     application=Depends(get_application),
                                     session: AsyncSession = Depends(get_async_session)):
     if application.status == "Pending":
         user = await get_user_uuid(application.user.uuid, session=session)
         if statusAp.status == 'Denied':
             user.ucoin += application.benefit.ucoin
-            obj = HistoryBenefitsORM(user_uuid=user.uuid, benefit_uuid=application.benefit.uuid, status='Denied')
+            obj = HistoryBenefitsORM(user_uuid=user.uuid, benefit_uuid=application.benefit.uuid, status='Denied',
+                                     msg=statusAp.msg)
             session.add(obj)
+            await create_history_user(benefit=application.benefit, user=application.user, status='Denied',
+                                      session=session)
         else:
             if application.benefit.duration_in_days:
                 end_date = date.today() + timedelta(application.benefit.duration_in_days)
@@ -257,6 +339,8 @@ async def update_status_application(statusAp: ApplicationStatus,
 
             obj = ApprovedBenefitsORM(user_uuid=user.uuid, benefit_uuid=application.benefit.uuid, end_date=end_date)
             session.add(obj)
+            await create_history_user(benefit=application.benefit, user=application.user, status='Approved',
+                                      session=session)
         await session.delete(application)
 
         await session.commit()
@@ -268,5 +352,6 @@ async def update_status_application(statusAp: ApplicationStatus,
 
 async def delete_benefit_db(benefit=Depends(get_benefit), session=Depends(get_async_session)):
     await session.delete(benefit)
+    await create_history_benefit(benefit, 'Delete', session=session)
     await session.commit()
     return {'detail': 'ok'}

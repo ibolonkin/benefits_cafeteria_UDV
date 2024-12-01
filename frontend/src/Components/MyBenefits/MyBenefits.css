@@ -1,54 +1,78 @@
 .choosen-container {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-  }
-  
-  .choosen-benefit-container {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 50px;
-    gap: 20px;
-  }
-  
-  .choosen-benefit-card {
-    width: 1400px;
-    height: 100px;
-    box-shadow: 0px 4px 50px 0px #00000040;
-    font-family: 'Hero';
-    display: flex;
-    align-items: center;
-    position: relative;
-    border-radius: 8px;
-    gap: 10px;
-  }
-  
-  .benefit-row {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start; /* Выравнивание по левому краю */
-    flex: 1;
-    margin-left: 70px;
-  }
-  
-  .choosen-benefit-label {
-    font-size: 20px;
-    color: #828282;
-    text-align: left;
-    margin-bottom: 16px;
-  }
-  
-  .choosen-benefit-value {
-    font-size: 20px;
-    text-align: left;
-    color: #0B2027;
-  }
-  
-  .choosen-benefit-dots {
-    position: absolute;
-    right: 20px;
-    top: 42%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    font-size: 40px;
-  }
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  gap: 20px;
+  padding: 20px;
+  font-family: 'Hero', sans-serif;
+}
+
+.filter-container {
+  width: 250px;
+  padding: 15px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.filter-select {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  background-color: #fff;
+  font-family: 'Hero', sans-serif;
+}
+
+.choosen-benefit-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  margin-bottom: 50px;
+  gap: 20px;
+}
+
+.choosen-benefit-card {
+  width: 100%;
+  max-width: 1400px;
+  height: 100px;
+  box-shadow: 0px 4px 50px 0px #00000040;
+  font-family: 'Hero', sans-serif;
+  display: flex;
+  align-items: center;
+  position: relative;
+  border-radius: 8px;
+  gap: 10px;
+  background-color: #fff;
+}
+
+.benefit-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+  margin-left: 70px;
+}
+
+.choosen-benefit-label {
+  font-size: 20px;
+  color: #828282;
+  text-align: left;
+  margin-bottom: 16px;
+}
+
+.choosen-benefit-value {
+  font-size: 20px;
+  text-align: left;
+  color: #0b2027;
+}
+
+.choosen-benefit-dots {
+  position: absolute;
+  right: 20px;
+  top: 42%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 40px;
+}

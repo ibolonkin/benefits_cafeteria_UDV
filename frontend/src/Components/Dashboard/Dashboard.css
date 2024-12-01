@@ -21,6 +21,10 @@ body {
   margin: 30px 50px 60px 50px;
 }
 
+.big-container {
+  position: relative;
+}
+
 .header-hr {
   width: 390px;
   height: 100vh;
@@ -30,9 +34,12 @@ body {
   flex-direction: column;
   align-items: flex-start;
   border-right: 1px solid #000000;
+  flex-shrink: 0;
+  z-index: 100;
+  background-color: #fff;
 }
 
-.logo-link-hr{
+.logo-link-hr {
   display: flex;
   margin: 0 auto;
   margin-bottom: 20px;
@@ -43,7 +50,7 @@ body {
   height: 46px;
 }
 
-.logo-hr{
+.logo-hr {
   width: 230px;
   height: 45px;
   margin-top: 30px;
@@ -54,11 +61,10 @@ body {
   text-align: center;
 }
 
-.nav-hr{
+.nav-hr {
   flex-grow: 1;
   display: flex;
   align-items: center;
-  width: 100%;
   margin-left: 46px;
 }
 
@@ -70,7 +76,7 @@ body {
   margin: 0;
 }
 
-.nav-list-hr{
+.nav-list-hr {
   list-style-type: none;
   width: 100%;
 }
@@ -84,10 +90,9 @@ body {
   margin: 0 60px;
 }
 
-.nav-item-hr{
+.nav-item-hr {
   margin: 15px 0;
   text-align: left;
-  width: 100%;
 }
 
 .item {
@@ -96,7 +101,7 @@ body {
   font-size: 20px;
 }
 
-.item-hr{
+.item-hr {
   font-size: 24px;
   text-decoration: none;
   color: #828282;
@@ -117,15 +122,30 @@ body {
   position: relative;
 }
 
-.user-profile-hr{
+.user-profile-hr {
   display: flex;
   align-items: center;
   position: relative;
   margin: 100px auto;
 }
 
-.user-icon {
+.user-icon-container {
+  width: 50px;
+  height: 50px;
+  border-radius: 360;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   margin-right: 10px;
+}
+
+.user-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 360px;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
 .username {
@@ -142,7 +162,7 @@ body {
 
 .dropdown-menu {
   position: absolute;
-  top: 70px;
+  top: 64px;
   right: 0px;
   flex-direction: column;
   border: 1px solid black;
@@ -151,6 +171,7 @@ body {
   padding: 5px;
   z-index: 10;
   margin-left: 20px;
+  width: 200px;
 }
 
 .dropdown-item {
@@ -176,11 +197,14 @@ body {
 }
 
 .content {
-  margin-left: 0;
+  margin-left: 0px;
 }
 
 .content-hr {
+  flex-grow: 1;
   margin-left: 390px;
+  min-height: 100vh;
+  position: relative;
 }
 
 @media (max-width: 1366px) {
@@ -217,7 +241,21 @@ body {
     font-size: 16px;
   }
 
+  .user-icon-container {
+    width: 40px;
+    height: 40px;
+    border-radius: 360;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
   .user-icon {
     width: 40px;
+    height: 40px;
+    border-radius: 360;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
   }
 }

@@ -10,6 +10,9 @@ const Registration = () => {
   const [middlename, setMiddlename] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [modalConfirmCode, setModalConfirmCode] = useState(false);
+  const [code, setCode] = useState('');
+  const [errorCode, setErrorCode] = useState(false);
 
   const navigate = useNavigate();
 
@@ -21,16 +24,17 @@ const Registration = () => {
     setPassword(e.target.value);
   };
 
+  const handleCodeInput = (e) => {
+    const value = e.target.value.replace(/[^0-9]/g, '');
+    setCode(value.slice(0, 5));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!lastname || !firstname || !email || !password) {
-      // alert('Все поля должны быть заполнены');
       return;
     }
 
-    if (password.length < 4 || password.length > 15) {
-      // alert('Пароль должен быть от 4 до 15 символов');
-    }
     try {
       const response = await registration({
         lastname,
@@ -41,14 +45,53 @@ const Registration = () => {
       });
 
       if (response) {
-        // alert('Регистрация прошла успешна!');
-        navigate('/login');
+        setModalConfirmCode(true);
+        localStorage.setItem('accessToken', response.accessToken);
       }
-      localStorage.setItem('accessToken', response.accessToken);
     } catch (error) {
       console.error('Ошибка регистрации', error);
     }
   };
+
+  const handleConfirmCode = async () => {
+    if (code.length === 5) {
+      const access_token = localStorage.getItem('accessToken');
+      const response = await fetch('http://26.15.99.17:8000/v1/verify_mail', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${access_token}`,
+        },
+        body: JSON.stringify({ user_code: code }),
+      });
+      if (response.ok) {
+        const waitToken = await response.json();
+        if (waitToken.accessToken) {
+          localStorage.setItem('accessToken', waitToken.accessToken);
+          navigate('/dashboard');
+          setModalConfirmCode(false);
+        }
+      } else {
+        setErrorCode(true);
+      }
+    } else {
+      setErrorCode(true);
+    }
+  };
+
+  const handleAgainGetCode = async () => {
+    const access_token = localStorage.getItem('accessToken');
+      const response = await fetch('http://26.15.99.17:8000/v1/verify_code', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${access_token}`,
+        },
+      });
+      if(response.ok) {
+        return;
+      }
+  }
 
   return (
     <div className="container-reg">
@@ -120,6 +163,35 @@ const Registration = () => {
           </form>
         </div>
       </div>
+      {modalConfirmCode && (
+        <div className="modal-overlay-code">
+          <div className="modal-window-code">
+            <h2>На вашу почту был отправлен код для подтверждения</h2>
+            <p className="modal-text-code">Введите код:</p>
+            <input
+              className="code-input"
+              type="text"
+              value={code}
+              onChange={handleCodeInput}
+              placeholder="_____"
+              maxLength={5}
+            />
+            <button
+              className="again-code-btn"
+              onClick={handleAgainGetCode}
+            >
+              Запросить код снова
+            </button>
+            {errorCode && <p className="error-code-msg">Неправильно введён код!</p>}
+            <button
+              className="code-btn"
+              onClick={handleConfirmCode}
+            >
+              Отправить
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

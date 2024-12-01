@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import logo from '../../imgs/logoUDV.png';
 import './Dashboard.css';
-import userImg from '../../imgs/user_acc.png';
+import userImg from '../../imgs/userPhoto.png';
 import vectorOpen from '../../imgs/VectorOpen.png';
 import { useHR } from '../HRContext';
+import { useAvatar } from '../../AvatarContext';
 
 const Dashboard = () => {
   const [firstName, setFirstName] = useState('');
@@ -12,13 +13,14 @@ const Dashboard = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [superUser, setSuperUser] = useState(false);
   const { isHRMode, setIsHRMode } = useHR();
+  const { avatar, setAvatar } = useAvatar();
   const navigate = useNavigate();
 
   useEffect(() => {
+    const access_token = localStorage.getItem('accessToken');
     const fetchUserData = async () => {
-      const access_token = localStorage.getItem('accessToken');
       try {
-        const response = await fetch('http://26.15.99.17:8000/v1/check', {
+        const response = await fetch('http://26.15.99.17:8000/profile/check/', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -33,8 +35,28 @@ const Dashboard = () => {
         console.error('Ошибка при получении данных пользователя', error);
       }
     };
+
+    fetch('http://26.15.99.17:8000/profile/photo/', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+      },
+    })
+      .then((res) => {
+        if (res.ok) {
+          return res.blob();
+        }
+      })
+      .then((blob) => {
+        const imageUrl = URL.createObjectURL(blob);
+        setAvatar(imageUrl);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
     fetchUserData();
-  }, []);
+  }, [setAvatar]);
 
   const fullName = `${firstName} ${lastName}`;
 
@@ -48,22 +70,24 @@ const Dashboard = () => {
       credentials: 'include',
     });
     localStorage.removeItem('accessToken');
+    setIsHRMode(false);
     navigate('/login');
   };
 
   const toggleHRMode = (mode) => {
     setIsHRMode(mode);
+    setIsDropdownOpen(false);
   };
 
   return (
-    <>
+    <div className="big-container">
       {isHRMode ? (
         <div className="container-hr">
           <div className="header-hr">
             <NavLink
-              to="/dashboard/choose-benefit"
+              to="/dashboard/benefits"
               className="logo-link-hr"
-              onClick={()=> toggleHRMode(false)}
+              onClick={() => toggleHRMode(false)}
             >
               <img
                 src={logo}
@@ -114,11 +138,13 @@ const Dashboard = () => {
 
             <div className="user-profile-hr">
               <span className="username">{fullName}</span>
-              <img
-                src={userImg}
-                alt="account"
-                className="user-icon"
-              />
+              <div className="user-icon-container">
+                <img
+                  src={avatar || userImg}
+                  alt="account"
+                  className="user-icon"
+                />
+              </div>
               <img
                 src={vectorOpen}
                 alt="open-logout"
@@ -161,7 +187,7 @@ const Dashboard = () => {
           </div>
         </div>
       ) : (
-        <div className='header'>
+        <div className="header">
           <NavLink
             to="/dashboard/choose-benefit"
             className={`logo-link`}
@@ -206,11 +232,13 @@ const Dashboard = () => {
 
           <div className={`user-profile`}>
             <span className="username">{fullName}</span>
-            <img
-              src={userImg}
-              alt="account"
-              className="user-icon"
-            />
+            <div className="user-icon-container">
+              <img
+                src={avatar || userImg}
+                alt="account"
+                className="user-icon"
+              />
+            </div>
             <img
               src={vectorOpen}
               alt="open-logout"
@@ -256,7 +284,7 @@ const Dashboard = () => {
       <div className={`content ${isHRMode && superUser ? 'content-hr' : ''}`}>
         <Outlet />
       </div>
-    </>
+    </div>
   );
 };
 

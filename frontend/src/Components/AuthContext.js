@@ -1,8 +1,9 @@
 import { useState, createContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-
 export const AuthContext = createContext();
+export let isVerified = true;
+
 
 export const AuthProvider = ({ children }) => {
   const [isAuth, setIsAuth] = useState(false);
@@ -11,7 +12,7 @@ export const AuthProvider = ({ children }) => {
   const checkAuthStatus = async () => {
     const access_token = localStorage.getItem('accessToken');
     if (access_token) {
-      const response = await fetch('http://26.15.99.17:8000/v1/check/', {
+      const response = await fetch('http://26.15.99.17:8000/profile/check/', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -20,6 +21,13 @@ export const AuthProvider = ({ children }) => {
       });
       if (response.ok) {
         setIsAuth(true);
+        isVerified = true;
+      } else if (response.status === 403) {
+        const details = await response.json();
+        navigate('/login');
+        if (details.detail === 'User not verified') {
+          isVerified = false;
+        }
       } else {
         localStorage.removeItem('accessToken');
         setIsAuth(false);

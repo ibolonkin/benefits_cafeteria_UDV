@@ -1,0 +1,262 @@
+.statistic-header {
+  font-family: 'Hero';
+  text-align: center;
+  margin-bottom: 90px;
+  padding-top: 20px;
+  font-size: 32px;
+}
+
+.all-statistics {
+  font-family: 'Hero';
+  display: flex;
+  column-gap: 20px;
+  width: 100%;
+}
+
+.statistic-container {
+  margin: 0 auto;
+  width: 380px;
+  height: 220px;
+  border: 2px solid #000000;
+  border-radius: 8px;
+}
+
+.statistic-container h3 {
+  margin-top: -35px;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.statistic-info {
+  text-align: center;
+  padding: 40px 20px;
+  font-size: 18px;
+}
+
+.statistic-info p {
+  color: #828282;
+  margin-bottom: 20px;
+  width: 100%;
+  font-weight: 600;
+}
+
+.statistic-info b {
+  color: #000000;
+  font-weight: 600;
+  padding-left: 6px;
+}
+
+.benefit-and-category-stat {
+  display: flex;
+  margin: 0 auto;
+  width: 93%;
+  border: 1px solid #000;
+  border-radius: 8px;
+  margin-top: 50px;
+}
+
+.benefit-section,
+.category-section {
+  flex: 1;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  grid-template-columns: 1fr 1fr; /* Две колонки */
+  text-align: center; /* Центрирование текста */
+  padding: 10px 0;
+}
+
+.benefit-section {
+  border-right: 1px solid black;
+}
+
+/* Заголовки: находятся в разных колонках */
+.benefit-header,
+.category-header {
+  font-weight: bold;
+}
+
+.benefit-header-name,
+.benefit-header-count,
+.category-header-name,
+.category-header-count {
+  grid-row: 1;
+  border-bottom: 1px solid #000;
+  border-width: 100%;
+}
+
+.benefit-names,
+.benefit-counts,
+.category-names,
+.category-counts {
+  display: flex;
+  flex-direction: column;
+  margin: 10px 0 5px 0;
+}
+
+.date-filter {
+  font-family: 'Hero';
+  display: flex;
+  justify-content: center;
+  margin-top: 90px;
+}
+
+.date-filter p {
+  padding-top: 4px;
+  margin-right: 4px;
+  font-size: 18px;
+}
+
+.first-date-input {
+  font-family: 'Hero';
+  border-radius: 4px;
+  width: 140px;
+  height: 30px;
+  margin-right: 40px;
+  color: #828282;
+  text-align: center;
+  border: 0.5px solid #000;
+}
+
+.second-date-input {
+  font-family: 'Hero';
+  border-radius: 4px;
+  width: 140px;
+  color: #828282;
+  height: 30px;
+  text-align: center;
+  border: 0.5px solid #000;
+}
+
+.date-filter input:active {
+  border-color: #00c08bcc;
+}
+
+.confirm-dates-btn {
+  height: 30px;
+  border-radius: 4px;
+  background-color: #00c08bcc;
+  border: none;
+  color: white;
+  padding: 0px 15px;
+  cursor: pointer;
+}
+
+.get-loaded-excel {
+  height: 30px;
+  border-radius: 4px;
+  background-color: #00c08bcc;
+  border: none;
+  color: white;
+  padding: 0px 15px;
+  margin-left: 450px;
+  margin-top: -50px;
+  cursor: pointer;
+}
+
+.btns-statistics {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  margin-left: 600px;
+}
+
+.filtered-statistics {
+  margin-top: 60px;
+}
+
+.filtered-statistics h3 {
+  text-align: center;
+}
+
+.filtered-statistics-wrapper {
+  margin: 0 auto;
+  width: 95%;
+  box-shadow: 0px 4px 50px 0px #00000040;
+  padding: 24px 0 32px 0;
+  border-radius: 45px;
+}
+
+.filtered-statistics-general {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.filtered-statistics-general p {
+  font-size: 18px;
+  border-right: 1px solid #000;
+  padding-right: 8px;
+  padding-left: 8px;
+}
+
+.filtered-statistics-general p:last-child {
+  border-right: none;
+}
+
+.benefit-stat-dates {
+  box-shadow: 0px 4px 50px 0px #00000040;
+  padding: 24px 40px 40px 0;
+  border-radius: 45px;
+  width: 95%;
+  margin: 60px auto 80px auto;
+}
+
+.benefit-stat-dates h2 {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.stat-header {
+  font-weight: 600;
+  text-align: center;
+  font-size: 20px;
+  font-family: 'Hero';
+}
+
+.stats-grid div {
+  text-align: center;
+}
+
+.benefit-stat-name-dates {
+  font-size: 18px;
+  text-align: left;
+  padding-left: 86px;
+}
+
+.current-benefit-stat-dates {
+  box-shadow: 0px 4px 50px 0px #00000040;
+  padding: 24px 0 32px 0;
+  width: 50%;
+  margin: -20px auto 40px auto;
+  border-radius: 45px;
+}
+
+.current-benefit-stat-dates h2 {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.stats-grid-current {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  row-gap: 10px;
+  align-items: center;
+}
+
+.stat-header-current {
+  font-weight: bold;
+  text-align: center;
+  font-family: 'Hero';
+  font-size: 20px;
+}
+
+.stats-grid-current div {
+  text-align: center;
+}

@@ -3,11 +3,59 @@ import { useNavigate } from 'react-router-dom';
 import { login } from '../../auth';
 import './Login.css';
 import logo from '../../imgs/logoUDV.png';
+import { isVerified } from '../AuthContext'
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  
+  const [code, setCode] = useState('');
+  const [errorCode, setErrorCode] = useState(false);
+
+  const handleCodeInput = (e) => {
+    const value = e.target.value.replace(/[^0-9]/g, '');
+    setCode(value.slice(0, 5));
+  };
+
+  const handleConfirmCode = async () => {
+    if (code.length === 5) {
+      const access_token = localStorage.getItem('accessToken');
+      const response = await fetch('http://26.15.99.17:8000/v1/verify_mail', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${access_token}`,
+        },
+        body: JSON.stringify({ user_code: code }),
+      });
+      if (response.ok) {
+        const waitToken = await response.json();
+        if (waitToken.accessToken) {
+          localStorage.setItem('accessToken', waitToken.accessToken);
+          navigate('/dashboard');
+        }
+      } else {
+        setErrorCode(true);
+      }
+    } else {
+      setErrorCode(true);
+    }
+  };
+
+  const handleAgainGetCode = async () => {
+    const access_token = localStorage.getItem('accessToken');
+      const response = await fetch('http://26.15.99.17:8000/v1/verify_code', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${access_token}`,
+        },
+      });
+      if(response.ok) {
+        return;
+      }
+  }
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -27,10 +75,9 @@ const Login = () => {
       let token = (await response.json()).accessToken;
       console.log(token);
       localStorage.setItem('accessToken', token);
-      if (response) {
-        // alert('Вход успешен!');
+      console.log(response)
+      if (response.ok) {
         navigate('/dashboard/choose-benefit');
-        
       }
     } catch (error) {
       console.error('Ошибка входа', error);
@@ -51,7 +98,6 @@ const Login = () => {
       <div className="form-container-log">
         <div className="form-rectangle-log">
           <form
-            onSubmit={handleLogin}
             className="form-log"
           >
             <h2 className="log">Вход</h2>
@@ -77,6 +123,7 @@ const Login = () => {
             <button
               type="submit"
               className="btn-log"
+              onClick={handleLogin}
             >
               Войти
             </button>
@@ -92,6 +139,35 @@ const Login = () => {
           </form>
         </div>
       </div>
+      {!isVerified && (
+        <div className="modal-overlay-code">
+          <div className="modal-window-code">
+            <h2>На вашу почту был отправлен код для подтверждения</h2>
+            <p className="modal-text-code">Введите код:</p>
+            <input
+              className="code-input"
+              type="text"
+              value={code}
+              onChange={handleCodeInput}
+              placeholder="_____"
+              maxLength={5}
+            />
+            <button
+              className="again-code-btn"
+              onClick={handleAgainGetCode}
+            >
+              Запросить код снова
+            </button>
+            {errorCode && <p className="error-code-msg">Неправильно введён код!</p>}
+            <button
+              className="code-btn"
+              onClick={handleConfirmCode}
+            >
+              Отправить
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

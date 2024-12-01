@@ -10,7 +10,9 @@ import Users from './Components/Users/Users';
 import MyBenefits from './Components/MyBenefits/MyBenefits';
 import BenefitsHR from './Components/BenefitsHR/BenefitsHR';
 import { HRProvider, useHR } from './Components/HRContext';
+import { AvatarProvider } from './AvatarContext';
 import Applications from './Components/Applications/Applications';
+import Statistics from './Components/Statistics/Statistics';
 
 function HRProtectedRoute({ component: Component }) {
   const { isHRMode } = useHR();
@@ -20,70 +22,77 @@ function HRProtectedRoute({ component: Component }) {
 function App() {
   return (
     <HRProvider>
-      <Routes>
-        <Route
-          path="/"
-          element={<Registration />}
-        />
+      <AvatarProvider>
+        <Routes>
+          <Route
+            path="/"
+            element={<Registration />}
+          />
 
-        <Route
-          path="/*"
-          element={
-            <Navigate
-              to="/dashboard"
-              replace
+          <Route
+            path="/*"
+            element={
+              <Navigate
+                to="/dashboard"
+                replace
+              />
+            }
+          />
+
+          <Route
+            path="/dashboard/*"
+            element={
+              <Navigate
+                to="/dashboard"
+                replace
+              />
+            }
+          />
+
+          <Route
+            path="/login"
+            element={<Login />}
+          />
+          <Route
+            path="/dashboard/*"
+            element={<ProtectedRoute component={Dashboard} />}
+          >
+            <Route
+              path=""
+              element={<Navigate to="choose-benefit" />}
             />
-          }
-        />
-
-        <Route
-          path="/dashboard/*"
-          element={
-            <Navigate
-              to="/dashboard"
-              replace
+            <Route
+              path="choose-benefit"
+              element={<ChooseBenefit />}
             />
-          }
-        />
+            <Route
+              path="profile"
+              element={<Profile />}
+            />
+            <Route
+              path="my-benefits"
+              element={<MyBenefits />}
+            />
+            <Route
+              path="benefits"
+              element={<HRProtectedRoute component={BenefitsHR} />}
+            />
+            <Route
+              path="users"
+              element={<HRProtectedRoute component={Users} />}
+            />
+            <Route
+              path="applications"
+              element={<HRProtectedRoute component={Applications} />}
+            />
 
-        <Route
-          path="/login"
-          element={<Login />}
-        />
-        <Route
-          path="/dashboard/*"
-          element={<ProtectedRoute component={Dashboard} />}
-        >
-          <Route
-            path=""
-            element={<Navigate to="choose-benefit" />}
-          />
-          <Route
-            path="choose-benefit"
-            element={<ChooseBenefit />}
-          />
-          <Route
-            path="profile"
-            element={<Profile />}
-          />
-          <Route
-            path="my-benefits"
-            element={<MyBenefits />}
-          />
-          <Route
-            path="benefits"
-            element={<HRProtectedRoute component={BenefitsHR} />}
-          />
-          <Route
-            path="users"
-            element={<HRProtectedRoute component={Users} />}
-          />
-          <Route
-            path="applications"
-            element={<HRProtectedRoute component={Applications} />}
-          />
-        </Route>
-      </Routes>
+            <Route
+              path="statistics"
+              element={<HRProtectedRoute component={Statistics} />}
+            />
+          </Route>
+        </Routes>
+      </AvatarProvider>
     </HRProvider>
   );
 }

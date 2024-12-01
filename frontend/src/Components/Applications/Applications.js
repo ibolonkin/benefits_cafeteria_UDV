@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
 import './Applications.css';
+import undo from '../../imgs/undo.png';
+import logo from '../../imgs/logoUDV.png';
+import { NavLink } from 'react-router-dom';
+import noBenefitPhoto from '../../imgs/noPhotoBenefit.png'
 
 const Applications = () => {
   const [data, setData] = useState({ applications: [], len: 0 });
@@ -11,17 +15,21 @@ const Applications = () => {
   const access_token = localStorage.getItem('accessToken');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showDeniModal, setShowDeniModal] = useState(false);
+  const [benefitDetails, setBenefitDetails] = useState(null);
+  const [isBenefitModalOpen, setIsBenefitModalOpen] = useState(false);
+  const [benefitImages, setBenefitImages] = useState({});
+  const [zip, setZip] = useState('');
   const usersPerPage = 5;
 
   const handleApplication = async (status) => {
     try {
-      const response = await fetch(`http://26.15.99.17:8000/b/application/${selectedApplication.id}`, {
+      const response = await fetch(`http://26.15.99.17:8000/b/applications/${selectedApplication.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${access_token}`,
         },
-        body: JSON.stringify({ status: status }),
+        body: JSON.stringify({ status: status, msg: zip }),
       });
       if (response.ok) {
         setSelectedApplication(null);
@@ -41,11 +49,30 @@ const Applications = () => {
     }
   };
 
+  const fetchBenefitImages = async (imageId) => {
+    if (benefitImages[imageId]) return;
+    const access_token = localStorage.getItem('accessToken');
+    try {
+      const response = await fetch(`http://26.15.99.17:8000/b/images/${imageId}/`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${access_token}`,
+        },
+      });
+      const blob = await response.blob();
+      const imageUrl = URL.createObjectURL(blob);
+      setBenefitImages((prevImages) => ({ ...prevImages, [imageId]: imageUrl }));
+    } catch (error) {
+      console.log('Ошибка при загрузке изображения', error);
+    }
+  };
+
   const fetchApplication = async (currentPage, field = sortField, order = sortOrder) => {
     const start = (currentPage - 1) * usersPerPage;
     const sortQuery = field ? `&order_by=${field}&sort_order=${order}` : '';
     try {
-      const response = await fetch(`http://26.15.99.17:8000/b/application/?start=${start}&offset=${usersPerPage}${sortQuery}`, {
+      const response = await fetch(`http://26.15.99.17:8000/b/applications/?start=${start}&offset=${usersPerPage}${sortQuery}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -84,7 +111,7 @@ const Applications = () => {
   };
 
   const openModal = async (application) => {
-    const response = await fetch(`http://26.15.99.17:8000/b/application/${application.id}`, {
+    const response = await fetch(`http://26.15.99.17:8000/b/applications/${application.id}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -94,6 +121,34 @@ const Applications = () => {
     const data = await response.json();
     setSelectedApplication(data);
     setIsModalOpen(true);
+  };
+
+  const openBenefitModal = async () => {
+    if (!selectedApplication || !selectedApplication.benefit) return;
+
+    try {
+      const response = await fetch(`http://26.15.99.17:8000/b/a/benefits/${selectedApplication.benefit.uuid}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${access_token}`,
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setBenefitDetails(data);
+        setIsBenefitModalOpen(true);
+      } else {
+        console.error('Ошибка получения данных:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Ошибка получения данных бенефита:', error);
+    }
+  };
+
+  const closeBenefitModal = () => {
+    setIsBenefitModalOpen(false);
+    setBenefitDetails(null);
   };
 
   const closeModal = () => {
@@ -120,7 +175,6 @@ const Applications = () => {
     return `${yearsWord}, ${months} ${months === 1 ? 'м' : months < 5 ? 'м' : 'м'}`;
   };
 
-
   const openConfirmModal = () => setShowConfirmModal(true);
   const openDeniModal = () => setShowDeniModal(true);
 
@@ -132,8 +186,12 @@ const Applications = () => {
     setShowConfirmModal(false);
   };
 
+  const sendMsg = (event) => {
+    setZip(event.target.value);
+  };
+
   return (
-    <div className='application-container'>
+    <div className="application-container">
       <div className="main-content-app">
         <div className="users-container">
           <div className="header-row">
@@ -180,7 +238,7 @@ const Applications = () => {
                 {application.user.profile.firstname} {application.user.profile.lastname}
               </span>
               <span>{application.benefit.name}</span>
-              <span>{application.benefit.category.name}</span>
+              <span>{application.benefit.category?.name || 'Нет'}</span>
               <span>{application.create_at}</span>
               <span className="more">...</span>
             </div>
@@ -235,7 +293,7 @@ const Applications = () => {
                   </p>
 
                   <p className="application-user-info-item">
-                    <label>Должность:</label> <span>{selectedApplication.user.profile.job_title}</span>
+                    <label>Должность:</label> <span>{selectedApplication.user.profile.job_title || 'Нет'}</span>
                   </p>
 
                   <p className="application-user-info-item">
@@ -258,10 +316,19 @@ const Applications = () => {
                 <div className="benefit-info-container-application">
                   <p className="application-benefit-info-item">
                     <label>Название льготы:</label> <span>{selectedApplication.benefit.name}</span>
+                    <button
+                      className="benefit-detailed-btn"
+                      onClick={() => {
+                        openBenefitModal();
+                        fetchBenefitImages(selectedApplication.benefit.main_photo);
+                      }}
+                    >
+                      Подробнее о льготе
+                    </button>
                   </p>
 
                   <p className="application-benefit-info-item">
-                    <label>Категория льготы:</label> <span>{selectedApplication.benefit.category.name}</span>
+                    <label>Категория льготы:</label> <span>{selectedApplication.benefit.category?.name || 'Нет'}</span>
                   </p>
 
                   <p className="application-benefit-info-item">
@@ -293,11 +360,80 @@ const Applications = () => {
               </div>
             )}
           </div>
+
+          {isBenefitModalOpen && (
+            <div className="modal-overlay-benefit-detailed">
+              <div
+                className="modal-overlay-benefit-detailed-content"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {benefitDetails ? (
+                  <div className="modal-benefit-detailed-wrapper">
+                    <div className="close-modal-div-applications">
+                      <NavLink
+                        to="/dashboard/benefits"
+                        className="logo-link-applications"
+                      >
+                        <img
+                          src={logo}
+                          alt="logoUDV"
+                          className="logo-udv-applications"
+                        />
+                      </NavLink>
+                      <div className="second-item-close">
+                        <img
+                          className="close-modal-hr-benefit-applications"
+                          alt="close"
+                          onClick={closeBenefitModal}
+                          src={undo}
+                          width={'34px'}
+                          height={'34px'}
+                        />
+                        <p className="close-modal-applications-info-benefit">О льготе</p>
+                      </div>
+                    </div>
+                    <>
+                      <h2 className="benefit-applications-name">{benefitDetails.name}</h2>
+                      <p className="benefit-applications-decsr">{benefitDetails.description}</p>
+                      <p className="benefit-applications-exp">
+                        Требуемый стаж: <b>{benefitDetails.experience_month === 12 ? `${benefitDetails.experience_month / 12} год` : benefitDetails.experience_month === 0 ? 'нет' : Math.floor(benefitDetails.experience_month / 12) + ' года'}</b>
+                      </p>
+                      {benefitImages[benefitDetails.main_photo] && (
+                        <img
+                          className="modal-applications-photo"
+                          src={benefitDetails.main_photo ? benefitImages[benefitDetails.main_photo] : noBenefitPhoto}
+                          alt={benefitDetails.name}
+                        />
+                      )}
+                      {benefitDetails.ucoin > 0 && (
+                        <p className="benefit-applications-ucoin">
+                          Цена: <b>{benefitDetails.ucoin} UCoin</b>
+                        </p>
+                      )}
+                      {benefitDetails.adap_period && <p className="benefit-applications-period">Адаптационный период должен быть пройден</p>}
+                    </>
+                  </div>
+                ) : (
+                  <p>Загрузка...</p>
+                )}
+              </div>
+            </div>
+          )}
+
           {showDeniModal && (
             <div className="dark-bgr-application">
               <div className="deni-application">
-                <div className="first-application-row">
+                <div className="first-application-row-other">
                   <p>Отклонить заявку</p>
+                </div>
+                <div className="reason-deni-msg">
+                  <p className="reason-deni-msg-title">Введите причину отклонения заявки:</p>
+                  <input
+                    type="text"
+                    className="reason-deni-msg-field"
+                    value={zip}
+                    onChange={sendMsg}
+                  />
                 </div>
                 <div className="second-application-row">
                   <button

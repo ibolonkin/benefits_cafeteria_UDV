@@ -11,6 +11,7 @@
 }
 
 .users-container {
+  width: 1340px;
   margin: 140px auto;
   padding: 0;
   margin-left: 30px;
@@ -110,8 +111,8 @@
 .modal-overlay {
   position: fixed;
   top: 10px;
-  left: 130px;
-  width: 100vw;
+  left: 400px;
+  width: 1400px;
   height: 100vh;
   display: flex;
   justify-content: center;
@@ -122,11 +123,16 @@
 .close-modal-hr {
   position: absolute;
   top: 150px;
-  right: 320px;
+  right: 90px;
   font-size: 32px;
   cursor: pointer;
   background: none;
   border: none;
+}
+
+.user-container-hr-wrapper {
+  box-shadow: 70px 0px 0px 100px #ffffff;
+  border-radius: 45px;
 }
 
 .user-container-hr {
@@ -193,7 +199,7 @@
 
 .UCoin-logo-hr {
   position: absolute;
-  top: 540px;
+  top: 548px;
   left: 824px;
   width: 50px;
   margin-right: 0px;
@@ -228,7 +234,7 @@
 .deni-change-btn {
   width: 150px;
   height: 30px;
-  background-color: #C00003CC;
+  background-color: #c00003cc;
   border: none;
   border-radius: 60px;
   cursor: pointer;
@@ -237,12 +243,12 @@
 .apply-change-btn {
   width: 150px;
   height: 30px;
-  background-color: #00C08BCC;
+  background-color: #00c08bcc;
   border: none;
   border-radius: 60px;
   cursor: pointer;
 }
-.save-button-benefit-user{
+.save-button-benefit-user {
   margin-top: 20px;
   width: 250px;
   height: 65px;
@@ -251,9 +257,160 @@
 .input-user-class {
   -webkit-border-radius: 15px;
   -moz-border-radius: 15px;
-
   border-radius: 15px;
   padding: 5px;
   text-align: center;
   font-size: 20px;
+}
+
+.close-modal-div-users {
+  display: flex;
+  position: absolute;
+  top: 20px;
+}
+
+.close-modal-users-info-item-hr {
+  font-size: 27px;
+  font-weight: 600;
+  margin-left: 15px;
+  margin-right: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.delete-user-photo {
+  background: none;
+  border: none;
+  display: block;
+  margin-left: auto;
+  margin-right: 0;
+  cursor: pointer;
+  font-size: 20px;
+  color: red;
+  font-weight: 600;
+}
+
+.delete-user-photo:hover {
+  color: rgb(143, 0, 0);
+}
+
+.status-user {
+  font-weight: 600;
+}
+
+.active-input {
+  color: #00c08bcc;
+  font-weight: 600;
+}
+
+.inactive-input {
+  color: red;
+  font-weight: 600;
+}
+
+.search-container {
+  display: flex;
+  margin: 0 auto;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.search-container input {
+  font-family: 'Hero';
+  width: 100%;
+  height: 40px;
+  margin-top: -80px;
+  border-radius: 45px;
+  border: 0.5px solid #000;
+  margin-right: 6px;
+  padding-left: 16px;
+  font-size: 18px;
+}
+
+.search-container button {
+  font-family: 'Hero';
+  margin-top: -80px;
+  height: 40px;
+  border-radius: 8px;
+  border: none;
+  background: #e2e2e2;
+  padding: 8px 28px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.search-container button:hover {
+  background: #e7e7e7;
+}
+
+.header-row-none {
+  display: none;
+}
+
+.open-user-benefits {
+  position: fixed;
+  top: 90px;
+  left: 400px;
+  width: 1400px;
+  height: 900px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001;
+  background-color: #fff;
+  border-radius: 45px;
+}
+
+.open-user-benefits-content {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  flex: 1;
+  gap: 20px;
+}
+
+.benefit-user-card {
+  margin: 0 auto;
+  width: 80%;
+  max-width: 1400px;
+  height: 100px;
+  box-shadow: 0px 4px 50px 0px #00000040;
+  font-family: 'Hero', sans-serif;
+  display: flex;
+  align-items: center;
+  border-radius: 8px;
+  background-color: #fff;
+}
+
+.delete-user-benefit {
+  margin-right: 20px;
+}
+
+.delete-user-benefit-btn {
+  background: none;
+  border: none;
+  background-color: rgb(255, 44, 44);
+  color: white;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 7px;
+}
+
+.delete-user-benefit-btn:hover {
+  background-color: red;
+}
+
+.zero-benefits-user {
+  text-align: center;
+}
+
+.unactive-benefit-btn{
+  color:#828282;
+}
+
+.unactive-benefit-btn:hover{
+  color:#5e5e5e;
 }

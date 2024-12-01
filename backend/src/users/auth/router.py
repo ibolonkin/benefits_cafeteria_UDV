@@ -1,12 +1,12 @@
-from fastapi import (APIRouter, Depends,
-                     Response, status, HTTPException, Request)
-from .handlerDB import register_user_db, refresh_get_user, find_auth_user, get_FirstLastName, get_coins_db, \
-    get_user_info_benefit
-from .shemas import Token, MyCoin, UserWithbenefit, Check
-from .utils import create_tokens
-from ..config import settings
+from fastapi import APIRouter, status, Response, Depends, Request, HTTPException
 
-router = APIRouter(responses={401: {'detail': "NOT AUTHORIZED"}})
+from src.config import settings
+from src.handler import refresh_get_user
+from src.users.auth.handler import register_user_db, find_auth_user, send_mail_again, verify_mail_db, update_password
+
+from src.utils import Token, create_tokens
+
+router = APIRouter(responses={401: {'detail': "NOT AUTHORIZED"}}, tags=["Auth"])
 
 
 @router.post('/registration/', status_code=status.HTTP_201_CREATED,
@@ -20,7 +20,7 @@ async def auth(response: Response, user_inf=Depends(find_auth_user)) -> Token:
     return create_tokens(user_inf, response)
 
 
-@router.post('/logout/', description='Выход из аккаунта')
+@router.post('/logout', description='Выход из аккаунта')
 async def logout(request: Request, response: Response):
     if request.cookies.get(settings.auth_jwt.key_cookie):
         response.delete_cookie(settings.auth_jwt.key_cookie)
@@ -35,15 +35,15 @@ async def refresh(response: Response, user_inf=Depends(refresh_get_user)) -> Tok
     return create_tokens(user_inf, response)
 
 
-@router.get('/check/')
-async def check_auth(info=Depends(get_FirstLastName)) -> Check:
-    return info
+@router.get('/verify_code')
+async def send_verify_code(msg=Depends(send_mail_again)):
+    return msg
 
 
-@router.get('/ucoin/')
-async def get_coin(coins=Depends(get_coins_db)) -> MyCoin:
-    return coins
+@router.post('/verify_mail')
+async def verify_mail(response: Response, user_inf=Depends(verify_mail_db)) -> Token:
+    return create_tokens(user_inf, response)
 
-@router.get('/me/')
-async def get_my_info(user=Depends(get_user_info_benefit)) -> UserWithbenefit:
-    return user
+@router.post('/change_password')
+async def change_password(user_inf=Depends(update_password)):
+    return {'detail':'ok'}
